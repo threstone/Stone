@@ -1,0 +1,28 @@
+{
+   "compilerOptions": {
+      "target": "es2017",
+      "noImplicitAny": false,
+      "module": "commonjs",
+      "removeComments": false,
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "sourceMap": false,
+      "allowJs": true,
+      "types": [
+         "node"
+      ],
+      "outDir": "./publish/",
+      "resolveJsonModule": true
+   },
+   "include": [
+      "./servers",
+      "./common",
+      "index.ts"
+   ],
+   "exclude": [
+      "**/node_modules/",
+      "**/dist/",
+      "./servers/server_template",
+      "**/test"
+   ]
+}
