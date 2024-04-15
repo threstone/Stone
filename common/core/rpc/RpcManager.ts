@@ -68,7 +68,7 @@ export class RpcManager {
         }
         this._clients = [];
         setTimeout(() => {
-            const config = serversConfigMap.get('master'); serverConfig
+            const config = serversConfigMap.get('master');
             const rpcPorts = config.rpcPorts;
             rpcPorts.forEach((port) => {
                 this._clients.push(new RpcClient(config.ip, port));

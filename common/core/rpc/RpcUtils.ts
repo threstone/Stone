@@ -1,3 +1,4 @@
+import { RpcRouteType } from "../../StoneDefine";
 import { RpcSession } from "./RpcServer";
 
 export enum RpcMessageType {
@@ -70,9 +71,9 @@ export class RpcUtilsByJson {
 
     /** 获取转发的clients */
     static getRouteClient(reqMsg: RpcReqMsg, serverMapList: Map<string, RpcSession[]>, nodeIdMap: Map<string, RpcSession>) {
-        if (reqMsg.routeOptions.type === 1/* target */) {
+        if (reqMsg.routeOptions.type === RpcRouteType.Target/* target */) {
             return [nodeIdMap.get(reqMsg.routeOptions.nodeId)];
-        } else if (reqMsg.routeOptions.type === 2/* all */) {
+        } else if (reqMsg.routeOptions.type === RpcRouteType.All/* all */) {
             return serverMapList.get(reqMsg.serverName);
         } else {/* random */
             const nodeList = serverMapList.get(reqMsg.serverName);
@@ -374,9 +375,9 @@ export class RpcUtilsByBuffer {
     static getRouteClient(buffer: Buffer, serverMapList: Map<string, RpcSession[]>, nodeIdMap: Map<string, RpcSession>) {
         const routeOptions: RpcRouterOptions = {};
         const offset = RpcUtilsByBuffer.readRouteOptions(routeOptions, buffer);
-        if (routeOptions.type === 1/* target */) {
+        if (routeOptions.type === RpcRouteType.Target/* target */) {
             return [nodeIdMap.get(routeOptions.nodeId)];
-        } else if (routeOptions.type === 2/* all */) {
+        } else if (routeOptions.type === RpcRouteType.All/* all */) {
             const serverName = RpcUtilsByBuffer.readStringFromBuffer(buffer, offset);
             return serverMapList.get(serverName);
         } else {/* random */
