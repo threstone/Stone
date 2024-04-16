@@ -16,9 +16,11 @@
     "resolveJsonModule": true
   },
   "include": [
-    "**/*.ts",
+    "./common",
+    "./app"
   ],
   "exclude": [
+    "./app/RpcIndex.ts",
     "./node_modules/",
     "./template/",
     "**/dist"

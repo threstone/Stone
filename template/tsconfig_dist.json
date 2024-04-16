@@ -15,12 +15,12 @@
       "resolveJsonModule": true
    },
    "include": [
-      "**/*.ts"
+      "**/*.ts",
+	  "./config/*.json"
    ],
    "exclude": [
       "**/node_modules/",
       "**/dist/",
-      "**/server_template",
       "**/test"
    ]
 }

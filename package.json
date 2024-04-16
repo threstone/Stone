@@ -1,6 +1,6 @@
 {
   "name": "stone-framework",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Node.js + Typescript server framework",
   "main": "index.ts",
   "bin": {
