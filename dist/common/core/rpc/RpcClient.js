@@ -1,144 +1,128 @@
-import * as WS from "ws";
-import * as path from "path";
-import { RpcMessageType, RpcUtils } from "./RpcUtils";
-import { StoneEvent } from "../../StoneDefine";
-
-export class RpcClient {
-
-    private static _remoteMap = new Map<string, any>();
-    private static getRemoteObject(rpcMsg: RpcReqMsg): Function {
-        try {
-            let remoteObject = this._remoteMap.get(rpcMsg.className);
-            if (!remoteObject) {
-                const remoteClass = require(
-                    path.join(process.cwd(), `/app/servers/${rpcMsg.serverName}/src/remote/${rpcMsg.className}`)
-                )[rpcMsg.className];
-                remoteObject = new remoteClass;
-                this._remoteMap.set(rpcMsg.className, remoteObject);
-            }
-            return remoteObject;
-        } catch (error) {
-            logger.error(`无法找到Remote,${JSON.stringify(rpcMsg)}`);
-        }
-    }
-
-    private _requestMap = new Map<number, CallReq>();
-    private _requestId: number = 1;
-    private _socket: WS;
-    public isClose: boolean = true;
-    private _ip: string;
-    private _port: number;
-
-    constructor(ip: string, port: number) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RpcClient = void 0;
+const WS = require("ws");
+const path = require("path");
+const RpcUtils_1 = require("./RpcUtils");
+const StoneDefine_1 = require("../../StoneDefine");
+class RpcClient {
+    constructor(ip, port) {
+        this._requestMap = new Map();
+        this._requestId = 1;
+        this.isClose = true;
         this._ip = ip;
         this._port = port;
         setInterval(this.clearTimeOutReq.bind(this), 3000);
         this.connectRpcServer();
         this.setReconnectServer();
     }
-
+    static getRemoteObject(rpcMsg) {
+        try {
+            let remoteObject = this._remoteMap.get(rpcMsg.className);
+            if (!remoteObject) {
+                const remoteClass = require(path.join(process.cwd(), `/app/servers/${rpcMsg.serverName}/src/remote/${rpcMsg.className}`))[rpcMsg.className];
+                remoteObject = new remoteClass;
+                this._remoteMap.set(rpcMsg.className, remoteObject);
+            }
+            return remoteObject;
+        }
+        catch (error) {
+            logger.error(`无法找到Remote,${JSON.stringify(rpcMsg)}`);
+        }
+    }
     /** 清理过期请求 */
-    private clearTimeOutReq() {
+    clearTimeOutReq() {
         const now = Date.now();
         this._requestMap.forEach((req, requestId, map) => {
             if (req.sendTime + 15000 < now) {
-                logger.error(`reqest time out :${req.reqInfo}`)
+                logger.error(`reqest time out :${req.reqInfo}`);
                 req.reject();
                 map.delete(requestId);
             }
-        })
+        });
     }
-
     /**
      * 重连RPC SERVER
      */
-    private setReconnectServer() {
+    setReconnectServer() {
         setInterval(() => {
             if (this.isClose) {
-                this.connectRpcServer()
+                this.connectRpcServer();
             }
-        }, 15000)
+        }, 15000);
     }
-
-    private connectRpcServer() {
+    connectRpcServer() {
         this._socket && this._socket.terminate();
         const url = "ws://" + this._ip + ":" + this._port;
-        const socket: WS = new WS(url);
+        const socket = new WS(url);
         this._socket = socket;
-
         socket.on("open", () => {
             this.isClose = false;
             // 第一条消息告知客户端信息
             this.send(serverConfig.serverType, serverConfig.nodeId, 'clientInfo', {}, []);
-            eventEmitter.emit(StoneEvent.RpcServerConnected);
-            logger.info(`${serverConfig.nodeId}[${process.pid}] connect rpc server successfully`)
-        })
-
+            eventEmitter.emit(StoneDefine_1.StoneEvent.RpcServerConnected);
+            logger.info(`${serverConfig.nodeId}[${process.pid}] connect rpc server successfully`);
+        });
         socket.on('message', this.handleMessage.bind(this));
-
         //断线重连
         socket.on("close", () => {
             logger.log("rpc server close! ", this._port);
             this.isClose = true;
-        })
-
+        });
         //失败重连
         socket.on("error", (err) => {
             logger.error('rpc client error! ', err);
             this.isClose = true;
-        })
+        });
     }
-
-    private handleMessage(msg: Buffer | string) {
+    handleMessage(msg) {
         // 客户端收到 call  send  result
-        const rpcMsg = RpcUtils.decodeRpcMsg(msg as any);
+        const rpcMsg = RpcUtils_1.RpcUtils.decodeRpcMsg(msg);
         switch (rpcMsg.type) {
-            case RpcMessageType.call:
-                return this.handleCall(rpcMsg as RpcReqMsg);
-            case RpcMessageType.send:
-                return this.handleSend(rpcMsg as RpcReqMsg);
-            case RpcMessageType.result:
-                this.handleResult(rpcMsg as RpcTransferResult);
+            case RpcUtils_1.RpcMessageType.call:
+                return this.handleCall(rpcMsg);
+            case RpcUtils_1.RpcMessageType.send:
+                return this.handleSend(rpcMsg);
+            case RpcUtils_1.RpcMessageType.result:
+                this.handleResult(rpcMsg);
                 break;
         }
     }
-
-    private handleResult(rpcResult: RpcTransferResult) {
+    handleResult(rpcResult) {
+        var _a;
         const requestCache = this._requestMap.get(rpcResult.requestId);
-        if (!requestCache) return;
+        if (!requestCache)
+            return;
         // 返回值结果如果是buffer,需要单独处理
-        if (rpcResult.result?.type === 'Buffer') {
+        if (((_a = rpcResult.result) === null || _a === void 0 ? void 0 : _a.type) === 'Buffer') {
             rpcResult.result = Buffer.from(rpcResult.result);
         }
         requestCache.resolve(rpcResult.result);
         this._requestMap.delete(rpcResult.requestId);
     }
-
-    private async handleCall(rpcMsg: RpcReqMsg) {
+    async handleCall(rpcMsg) {
         const remote = RpcClient.getRemoteObject(rpcMsg);
-        const replay: RpcTransferResult = {
-            type: RpcMessageType.result,
+        const replay = {
+            type: RpcUtils_1.RpcMessageType.result,
             fromNodeId: rpcMsg.fromNodeId,
             requestId: rpcMsg.requestId,
             result: null
         };
         replay.result = await remote[rpcMsg.funcName](...rpcMsg.args);
-        this._socket.send(RpcUtils.encodeResult(replay));
+        this._socket.send(RpcUtils_1.RpcUtils.encodeResult(replay));
     }
-
-    private handleSend(rpcMsg: RpcReqMsg) {
+    handleSend(rpcMsg) {
         const remote = RpcClient.getRemoteObject(rpcMsg);
         remote[rpcMsg.funcName](...rpcMsg.args);
     }
-
-    public call(serverName: string, className: string, funcName: string, routeOption: RpcRouterOptions, args?: any[]): Promise<any> {
+    call(serverName, className, funcName, routeOption, args) {
         if (this.isClose) {
             logger.warn(`rpc${this._port} is not connected`);
             return;
         }
         return new Promise((resolve, reject) => {
             const requestId = this._requestId++;
-            const buffer = RpcUtils.encodeCallReqest(serverConfig.nodeId, serverName, className, funcName, requestId, routeOption, args);
+            const buffer = RpcUtils_1.RpcUtils.encodeCallReqest(serverConfig.nodeId, serverName, className, funcName, requestId, routeOption, args);
             this._socket.send(buffer);
             this._requestMap.set(requestId, {
                 requestId,
@@ -149,21 +133,15 @@ export class RpcClient {
             });
         });
     }
-
-    public send(serverName: string, className: string, funcName: string, routeOption: RpcRouterOptions, args?: any[]) {
+    send(serverName, className, funcName, routeOption, args) {
         if (this.isClose) {
             logger.warn(`rpc${this._port} is not connected`);
             return;
         }
-        const buffer = RpcUtils.encodeSendReqest(serverConfig.nodeId, serverName, className, funcName, routeOption, args);
+        const buffer = RpcUtils_1.RpcUtils.encodeSendReqest(serverConfig.nodeId, serverName, className, funcName, routeOption, args);
         this._socket.send(buffer);
     }
 }
-
-interface CallReq {
-    requestId: number;
-    resolve: Function;
-    reject: Function;
-    sendTime: number;
-    reqInfo: string;
-}
+exports.RpcClient = RpcClient;
+RpcClient._remoteMap = new Map();
+//# sourceMappingURL=RpcClient.js.map

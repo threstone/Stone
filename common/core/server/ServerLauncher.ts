@@ -9,7 +9,7 @@ export class ServerLauncher {
         } else if (startupParam.nodeId === 'master') {
             require('../master/src/bin/main');
         } else {
-            require(path.join(process.cwd(), `dist/servers/${startupParam.serverType}/src/bin/main`));
+            require(path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main`));
         }
     }
 }

@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 const os = require('os');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const childProcess = require('child_process');
-const servers = require('../../config/servers.json');
 const args = process.argv.slice(2);
 if (args.length === 0) {
     showHelp();
@@ -37,7 +36,7 @@ function handleCmd() {
             args.splice(index, 1);
         }
     }
-    const cmdList = ['startall', 'stopall', 'list', 'kill', 'start', 'restart', 'updaterpcdesc']
+    const cmdList = ['startall', 'stopall', 'list', 'kill', 'start', 'restart', 'updaterpcdesc', 'init']
     const argv = args.shift().toLowerCase();
     const index = cmdList.indexOf(argv);
     if (index !== -1) {
@@ -49,9 +48,9 @@ function handleCmd() {
 }
 
 /** 检查是否build js */
-function checkBuild() {
+async function checkBuild() {
     const mainPath = path.join(__dirname, '../core/master/src/bin/');
-    const files = fs.readdirSync(mainPath);
+    const files = await fs.readdir(mainPath);
     if (files.indexOf('main.js') !== -1) {
         return;
     }
@@ -59,7 +58,7 @@ function checkBuild() {
     const scriptPath = path.join(__dirname, '../../dist/common/core/master/src/bin/main.js');
     // 判断文件是否存在的办法
     try {
-        fs.accessSync(scriptPath);
+        await fs.access(scriptPath)
         return;
     } catch (e) {
     }
@@ -73,15 +72,15 @@ function checkBuild() {
 }
 
 /** 启动服务 */
-function startall(environmentArgs) {
+async function startall(environmentArgs) {
     environment = environmentArgs || environment;
-    let scriptPath = path.join(__dirname, '../core/master/src/bin/main.js');
+    let scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
     // 判断文件是否存在的办法
     try {
-        fs.accessSync(scriptPath);
+        await fs.access(scriptPath);
     } catch (error) {
-        checkBuild();
-        scriptPath = path.join(__dirname, '../../dist/common/core/master/src/bin/main.js');
+        await checkBuild();
+        scriptPath = path.join(__dirname, '../../dist/common/core/server/ServerLauncher.js');
     }
     if (isBackgroud) {
         if (os.platform() == 'win32') {
@@ -143,11 +142,11 @@ function restart(nodeId) {
 }
 
 /** 生成并更新rpc类型描述文件 */
-function updaterpcdesc() {
+async function updaterpcdesc() {
     let scriptPath = path.join(__dirname, '../../dist/common/core/rpc/RpcManager.js');
     // 判断文件是否存在的办法
     try {
-        fs.accessSync(scriptPath);
+        await fs.access(scriptPath);
     } catch (error) {
         checkBuild();
     }
@@ -161,7 +160,6 @@ function updaterpcdesc() {
 
 /** 展示帮助 */
 function showHelp() {
-    const cmdStart = os.platform() == 'win32' ? '' : 'sh ';
     console.log(
         `
 Options:
@@ -171,20 +169,22 @@ Options:
     -b                        后台启动  
 
 Commands:
-
-    stone startAll [environment]   启动服务                    eg: ${cmdStart}stone startAll dev
-    stone stopAll [environment]    停止所有进程                eg: ${cmdStart}stone stopAll dev
-    stone list [environment]       展示所有进程                eg: ${cmdStart}stone list dev
-    stone kill [nodeId]            杀死指定进程                eg: ${cmdStart}stone -e dev kill Hall1
-    stone start [nodeId]           启动指定进程                eg: ${cmdStart}stone -e dev start Hall1
-    stone restart [nodeId]         重新启动指定进程            eg: ${cmdStart}stone -e dev restart Hall1
-    stone updateRpcDesc            生成并更新rpc类型描述文件   eg: ${cmdStart}stone updateRpcDesc
+    
+    stone init                     在当前目录下创建模板工程(脚手架)         eg: stone init
+    stone startAll [environment]   启动服务                                 eg: stone startAll dev
+    stone stopAll [environment]    停止所有进程                             eg: stone stopAll dev
+    stone list [environment]       展示所有进程                             eg: stone list dev
+    stone kill [nodeId]            杀死指定进程                             eg: stone -e dev kill Hall1
+    stone start [nodeId]           启动指定进程                             eg: stone -e dev start Hall1
+    stone restart [nodeId]         重新启动指定进程                         eg: stone -e dev restart Hall1
+    stone updateRpcDesc            生成并更新rpc类型描述文件                eg: stone updateRpcDesc
         `
     );
 }
 
 function sendCMD(cmd, dataStr) {
     return new Promise((resolve, reject) => {
+        const servers = require(path.join(process.cwd(), '/config/servers.json'));
         const config = servers[environment].master;
         const http = require('http');
         // 创建HTTP GET请求选项对象
@@ -225,4 +225,26 @@ function sendCMD(cmd, dataStr) {
         }
         req.end();
     })
+}
+
+function init() {
+    copyDir(path.join(__dirname, '../../template'), process.cwd())
+}
+
+
+async function copyDir(src, dest) {
+    const entries = await fs.readdir(src, { withFileTypes: true });
+
+    await fs.mkdir(dest, { recursive: true });
+
+    for (let entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+
+        if (entry.isDirectory()) {
+            await copyDir(srcPath, destPath);
+        } else {
+            await fs.copyFile(srcPath, destPath);
+        }
+    }
 }
