@@ -83,7 +83,8 @@ export class RpcManager {
         }
         // 遍历所有服务的remote目录
         const serverRemoteMap = new Map<string, Map<string, any>>();
-        const serversPath = path.join(__dirname, '../../../servers');
+
+        const serversPath = path.join(process.cwd(), '/servers');
         const dirs = fs.readdirSync(serversPath);
         for (let index = 0; index < dirs.length; index++) {
             const dirName = dirs[index];
@@ -123,8 +124,6 @@ export class RpcManager {
     private static send(serverName: string, className: string, funcName: string, routeOption: RpcRouterOptions, ...args: any[]): void {
         this.getClient()?.send(serverName, className, funcName, routeOption, args);
     }
-
-
 
     /** 生成调用序列 */
     private static initRpcModule() {
@@ -215,15 +214,15 @@ declare class rpc {
         rpcDeclare += serverDeclare;
         rpcDeclare += remoteDeclare;
 
-        const indexPath = path.join(__dirname, `../../../../common/core/rpc/index.ts`);
-        fs.writeFileSync(indexPath, rpcDeclare);
+        fs.writeFileSync(path.join(process.cwd(), '/app/RpcIndex.ts'), rpcDeclare);
     }
 
     /** 获取remote class所有函数的描述信息 */
     private static getClassFunctionDesc(serverType: string, className: string, functionList: string[]) {
         const funcDescList: string[] = [];
         try {
-            const filePath = path.join(__dirname, `../../../../servers/${serverType}/src/remote/${className}.ts`);
+
+            const filePath = path.join(process.cwd(), '/servers/${serverType}/src/remote/${className}.ts');
             const fileText = fs.readFileSync(filePath, { encoding: 'utf8' });
             functionList.forEach((funcName) => {
                 if (funcName === 'constructor') {

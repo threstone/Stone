@@ -1,4 +1,4 @@
-import * as Path from 'path';
+import * as path from 'path';
 import { NodeMgr } from '../master/src/NodeMgr';
 import { BaseWorker } from './BaseWorker';
 export class NodeWorker extends BaseWorker {
@@ -6,7 +6,7 @@ export class NodeWorker extends BaseWorker {
     private _nodeMgr: NodeMgr;
 
     constructor(serverType: string, serverConfig: ServerConfig, nodeMgr: NodeMgr) {
-        super(Path.join(__dirname, `../../../servers/${serverType}/src/bin/main`), serverConfig)
+        super(path.join(process.cwd(), `/servers/${serverType}/src/bin/main`), serverConfig)
         this.serverConfig = serverConfig;
         this._nodeMgr = nodeMgr;
     }

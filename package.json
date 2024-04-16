@@ -1,8 +1,8 @@
 {
-  "name": "stone",
+  "name": "stone-framework",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Node.js + Typescript server framework",
+  "main": "dist/common/core/master/src/bin/main.js",
   "scripts": {
     "test": "mocha ./dist/**/test/*.test.js",
     "start_dev": "stone startAll dev",
@@ -11,8 +11,12 @@
     "list": "sh stone list prod",
     "updateRpcDesc": "echo 生成并更新rpc类型描述文件 && stone updateRpcDesc"
   },
-  "author": "",
+  "author": "threstone",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/threstone/Stone"
+  },
   "dependencies": {
     "koa": "^2.14.2",
     "koa-bodyparser": "^4.4.1",

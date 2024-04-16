@@ -10,10 +10,8 @@ export class RpcClient {
         try {
             let remoteObject = this._remoteMap.get(rpcMsg.className);
             if (!remoteObject) {
-                let remoteClass = require(
-                    path.join(
-                        __dirname, `../../../servers/${rpcMsg.serverName}/src/remote/${rpcMsg.className}`
-                    )
+                const remoteClass = require(
+                    path.join(process.cwd(), `/servers/${rpcMsg.serverName}/src/remote/${rpcMsg.className}`)
                 )[rpcMsg.className];
                 remoteObject = new remoteClass;
                 this._remoteMap.set(rpcMsg.className, remoteObject);

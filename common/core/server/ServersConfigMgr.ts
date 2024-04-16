@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as serversConfig from '../../../config/servers.json';
+import { StoneEvent } from '../../StoneDefine';
 export class ServersConfigMgr {
 
     private static _watcher: fs.FSWatcher;
@@ -8,7 +8,8 @@ export class ServersConfigMgr {
 
     static init() {
         if (!this._watcher) {
-            this._configFilePath = path.join(__dirname, '../../../config/servers.json');
+            this._configFilePath = path.join(process.cwd(), '/config/servers.json');
+            const serversConfig = require(this._configFilePath)
             this._watcher = fs.watch(this._configFilePath, () => {
                 logger.info('update servers.json');
                 // 删除缓存
@@ -17,7 +18,7 @@ export class ServersConfigMgr {
                 require(this._configFilePath);
                 this.ininConfigMap(require(this._configFilePath));
                 // 派发更新事件
-                eventEmitter.emit('serversConfigUpdate')
+                eventEmitter.emit(StoneEvent.ServersConfigUpdate);
             });
 
             this.ininConfigMap(serversConfig);
