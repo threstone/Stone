@@ -35,7 +35,7 @@ export class NodeMgr {
     }
 
     private startNode(serverConf: ServerConfig) {
-        const node = new NodeWorker(serverConf.serverType, serverConf, this);
+        const node = new NodeWorker(serverConf, this);
         node.fork();
     }
 

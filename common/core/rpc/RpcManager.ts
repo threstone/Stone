@@ -49,7 +49,7 @@ export class RpcManager {
         this._serverWorker = [];
         const rpcPorts = serversConfigMap.get('master').rpcPorts;
         rpcPorts.forEach((port) => {
-            const worker = new BaseWorker(path.join(__dirname, './RPCServer.js'), {
+            const worker = new BaseWorker(path.join(__dirname, '../server/ServerLauncher'), {
                 nodeId: `RPC${port}`,
                 port: port,
                 autuResume: true,
@@ -214,15 +214,14 @@ declare class rpc {
         rpcDeclare += serverDeclare;
         rpcDeclare += remoteDeclare;
 
-        fs.writeFileSync(path.join(process.cwd(), '/app/RpcIndex.ts'), rpcDeclare);
+        fs.writeFileSync(path.join(process.cwd(), '/servers/RpcIndex.ts'), rpcDeclare);
     }
 
     /** 获取remote class所有函数的描述信息 */
     private static getClassFunctionDesc(serverType: string, className: string, functionList: string[]) {
         const funcDescList: string[] = [];
         try {
-
-            const filePath = path.join(process.cwd(), '/servers/${serverType}/src/remote/${className}.ts');
+            const filePath = path.join(process.cwd(), `/servers/${serverType}/src/remote/${className}.ts`);
             const fileText = fs.readFileSync(filePath, { encoding: 'utf8' });
             functionList.forEach((funcName) => {
                 if (funcName === 'constructor') {

@@ -1,8 +1,6 @@
-import { ServerInit } from "../server/ServerInit";
 import * as WS from "ws"
 import { RpcUtils } from "./RpcUtils";
 
-ServerInit.init();
 class RpcServer {
 
     private _serverMapList = new Map<string, RpcSession[]>();

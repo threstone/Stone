@@ -3,16 +3,12 @@ import { ServersConfigMgr } from "./ServersConfigMgr";
 import { RpcManager } from "../rpc/RpcManager";
 import { EventEmitter } from 'events';
 import { configure, getLogger } from 'log4js';
-import * as path from 'path';
 export class ServerInit {
     static init() {
         // 初始化启动参数
         global.startupParam = launcherOption;
         // 初始化全局事件对象
         global.eventEmitter = new EventEmitter();
-        // 依赖配置
-        const serviceConfig = require(path.join(process.cwd(),'/config/service.json'));
-        global.serviceConfig = serviceConfig[startupParam.env];
         // 日志初始化
         ServerInit.initLogger();
         // 初始化service config manager

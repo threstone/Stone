@@ -2,7 +2,7 @@
   "name": "stone-framework",
   "version": "1.0.2",
   "description": "Node.js + Typescript server framework",
-  "main": "dist/common/core/master/src/bin/main.js",
+  "main": "index.ts",
   "scripts": {
     "test": "mocha ./dist/**/test/*.test.js",
     "start_dev": "stone startAll dev",

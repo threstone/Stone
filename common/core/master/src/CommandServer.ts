@@ -1,7 +1,7 @@
 import * as Koa from 'koa';
 import * as Router from 'koa-router';
 import * as BodyParser from 'koa-bodyparser';
-import { GlobalVar } from './master';
+import { GlobalVar } from './GlobalVar';
 
 export class CommonServer {
     constructor() {

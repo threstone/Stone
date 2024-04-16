@@ -2,8 +2,6 @@
 import { NodeMgr } from './NodeMgr';
 import { CommonServer } from './CommandServer';
 export class GlobalVar {
-
-
     public static nodeMgr: NodeMgr;
     public static commonServer: CommonServer;
 

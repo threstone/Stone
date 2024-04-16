@@ -5,8 +5,8 @@ export class NodeWorker extends BaseWorker {
 
     private _nodeMgr: NodeMgr;
 
-    constructor(serverType: string, serverConfig: ServerConfig, nodeMgr: NodeMgr) {
-        super(path.join(process.cwd(), `/servers/${serverType}/src/bin/main`), serverConfig)
+    constructor( serverConfig: ServerConfig, nodeMgr: NodeMgr) {
+        super(path.join(__dirname, '../server/ServerLauncher'), serverConfig);
         this.serverConfig = serverConfig;
         this._nodeMgr = nodeMgr;
     }

@@ -29,7 +29,7 @@
             "args": [
                 "-r",
                 "source-map-support/register",
-                ".\\dist\\common\\core\\master\\src\\bin\\main.js",
+                ".\\dist\\common\\core\\server\\ServerLauncher.js",
                 "env=dev",
                 "nodeId=master"
             ]

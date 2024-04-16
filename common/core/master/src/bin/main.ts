@@ -1,4 +1,2 @@
-import { ServerInit } from "../../../server/ServerInit";
-ServerInit.init();
-import { GlobalVar } from '../master';
+import { GlobalVar } from "../GlobalVar";
 GlobalVar.init();
