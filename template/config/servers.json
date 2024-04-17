@@ -10,7 +10,10 @@
         },
         "server_template": [
             {
-                "nodeId": "server_template"
+                "nodeId": "server_template1"
+            },
+            {
+                "nodeId": "server_template2"
             }
         ]
     }

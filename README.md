@@ -10,15 +10,37 @@ Node.js后端多进程框架,支持动态扩容、销毁,使用Typescript实现�
 
 #### 使用
 
-##### 1. 依赖安装
+##### 1. 项目初始化
 全局安装Typescript依赖(用于编译js代码):
 ``` 
 npm install -g typescript
 ```
 
-安装框架依赖:
+安装框架:
 ``` 
-npm install
+npm install -g stone-framework
+```
+
+创建目录:stoneDemo
+```
+mkdir stoneDemo
+cd stoneDemo
+```
+
+使用脚手架初始化项目:
+```
+stone init
+```
+
+stoneDemo目录文件结构如下:
+```
+app/
+config/
+index.ts
+package.json
+publish.bat
+tsconfig.json
+tsconfig_dist.json
 ```
 
 ##### 2. 服务创建

@@ -17,7 +17,8 @@
   },
   "include": [
     "./common",
-    "./app"
+    "./app",
+    "./index.ts"
   ],
   "exclude": [
     "./app/RpcIndex.ts",

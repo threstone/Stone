@@ -1,8 +1,14 @@
 #!/usr/bin/env node
-const os = require('os');
-const fs = require('fs').promises;
-const path = require('path');
-const childProcess = require('child_process');
+"use strict";
+// const os = require('os');
+// const fs = require('fs').promises;
+// const path = require('path');
+// const childProcess = require('child_process');
+Object.defineProperty(exports, "__esModule", { value: true });
+const os = require("os");
+const fs_1 = require("fs");
+const path = require("path");
+const child_process = require("child_process");
 const args = process.argv.slice(2);
 if (args.length === 0) {
     showHelp();
@@ -45,21 +51,21 @@ function handleCmd() {
 /** 检查是否build js */
 async function checkBuild() {
     const mainPath = path.join(__dirname, '../core/master/src/bin/');
-    const files = await fs.readdir(mainPath);
+    const files = await fs_1.promises.readdir(mainPath);
     if (files.indexOf('main.js') !== -1) {
         return;
     }
     const scriptPath = path.join(__dirname, '../../dist/common/core/master/src/bin/main.js');
     // 判断文件是否存在的办法
     try {
-        await fs.access(scriptPath);
+        await fs_1.promises.access(scriptPath);
         return;
     }
     catch (e) {
     }
     try {
         console.log('building...');
-        childProcess.execSync('tsc', {});
+        child_process.execSync('tsc', {});
         console.log('build success');
     }
     catch (error) {
@@ -72,7 +78,7 @@ async function startall(environmentArgs) {
     let scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
     // 判断文件是否存在的办法
     try {
-        await fs.access(scriptPath);
+        await fs_1.promises.access(scriptPath);
     }
     catch (error) {
         await checkBuild();
@@ -84,7 +90,7 @@ async function startall(environmentArgs) {
             return;
         }
         const cmd = `nohup node ${scriptPath} env=${environment} nodeId=master &`;
-        childProcess.exec(cmd, (error, stdout, stderr) => {
+        child_process.exec(cmd, (error, stdout, stderr) => {
             if (error) {
                 console.error(`执行命令时发生错误：${error}`);
                 return;
@@ -97,7 +103,7 @@ async function startall(environmentArgs) {
         }, 1500);
     }
     else {
-        const worker = childProcess.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv: ['-r', 'source-map-support/register'] });
+        const worker = child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv: ['-r', 'source-map-support/register'] });
         worker.on('exit', (code, signal) => {
             console.log(`exit code:${code}, signal:${signal}`);
         });
@@ -136,7 +142,7 @@ async function updaterpcdesc() {
     let scriptPath = path.join(__dirname, '../../dist/common/core/rpc/RpcManager.js');
     // 判断文件是否存在的办法
     try {
-        await fs.access(scriptPath);
+        await fs_1.promises.access(scriptPath);
     }
     catch (error) {
         checkBuild();
@@ -179,7 +185,8 @@ function sendCMD(cmd, dataStr) {
             hostname: config.ip,
             port: config.port,
             path: `/${cmd}`,
-            method: 'GET'
+            method: 'GET',
+            headers: null
         };
         if (dataStr) {
             options.headers = {
@@ -210,11 +217,11 @@ function sendCMD(cmd, dataStr) {
     });
 }
 function init() {
-    copyDir(path.join(__dirname, '../../template'), process.cwd());
+    copyDir(path.join(__dirname, '../../../template'), process.cwd());
 }
 async function copyDir(src, dest) {
-    const entries = await fs.readdir(src, { withFileTypes: true });
-    await fs.mkdir(dest, { recursive: true });
+    const entries = await fs_1.promises.readdir(src, { withFileTypes: true });
+    await fs_1.promises.mkdir(dest, { recursive: true });
     for (let entry of entries) {
         const srcPath = path.join(src, entry.name);
         const destPath = path.join(dest, entry.name);
@@ -222,8 +229,8 @@ async function copyDir(src, dest) {
             await copyDir(srcPath, destPath);
         }
         else {
-            await fs.copyFile(srcPath, destPath);
+            await fs_1.promises.copyFile(srcPath, destPath);
         }
     }
 }
-//# sourceMappingURL=cmdClient.js.map
+//# sourceMappingURL=Command.js.map

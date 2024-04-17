@@ -1,8 +1,15 @@
 #!/usr/bin/env node
-const os = require('os');
-const fs = require('fs').promises;
-const path = require('path');
-const childProcess = require('child_process');
+// const os = require('os');
+// const fs = require('fs').promises;
+// const path = require('path');
+// const childProcess = require('child_process');
+
+import * as os from 'os';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import * as child_process from 'child_process';
+
+
 const args = process.argv.slice(2);
 if (args.length === 0) {
     showHelp();
@@ -64,7 +71,7 @@ async function checkBuild() {
     }
     try {
         console.log('building...');
-        childProcess.execSync('tsc', {});
+        child_process.execSync('tsc', {});
         console.log('build success');
     } catch (error) {
         console.error('tsc error ', error);
@@ -88,7 +95,7 @@ async function startall(environmentArgs) {
             return;
         }
         const cmd = `nohup node ${scriptPath} env=${environment} nodeId=master &`;
-        childProcess.exec(cmd, (error, stdout, stderr) => {
+        child_process.exec(cmd, (error, stdout, stderr) => {
             if (error) {
                 console.error(`执行命令时发生错误：${error}`);
                 return;
@@ -101,7 +108,7 @@ async function startall(environmentArgs) {
             process.exit();
         }, 1500);
     } else {
-        const worker = childProcess.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv: ['-r', 'source-map-support/register'] });
+        const worker = child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv: ['-r', 'source-map-support/register'] });
         worker.on('exit', (code, signal) => {
             console.log(`exit code:${code}, signal:${signal}`);
         });
@@ -152,7 +159,7 @@ async function updaterpcdesc() {
     }
     const rpcMgr = require(scriptPath);
     global.serversConfigMap = new Map();
-    global.startupParam = {};
+    global.startupParam = {} as any;
     serversConfigMap.set('master', { isTest: true });
     rpcMgr.RpcManager.initRpcDeclare()
     console.log('完成');
@@ -182,7 +189,7 @@ Commands:
     );
 }
 
-function sendCMD(cmd, dataStr) {
+function sendCMD(cmd: string, dataStr?: string) {
     return new Promise((resolve, reject) => {
         const servers = require(path.join(process.cwd(), '/config/servers.json'));
         const config = servers[environment].master;
@@ -192,7 +199,8 @@ function sendCMD(cmd, dataStr) {
             hostname: config.ip,
             port: config.port,
             path: `/${cmd}`,
-            method: 'GET'
+            method: 'GET',
+            headers: null
         };
         if (dataStr) {
             options.headers = {
@@ -228,7 +236,7 @@ function sendCMD(cmd, dataStr) {
 }
 
 function init() {
-    copyDir(path.join(__dirname, '../../template'), process.cwd())
+    copyDir(path.join(__dirname, '../../../template'), process.cwd())
 }
 
 

@@ -84,13 +84,10 @@ export class RpcManager {
         // 遍历所有服务的remote目录
         const serverRemoteMap = new Map<string, Map<string, any>>();
 
-        const serversPath = path.join(process.cwd(), '/app/servers');
+        const serversPath = path.join(process.cwd(), 'dist/app/servers');
         const dirs = fs.readdirSync(serversPath);
         for (let index = 0; index < dirs.length; index++) {
             const dirName = dirs[index];
-            if (dirName === 'server_template') {
-                continue;
-            }
             const remotePath = path.join(serversPath, `/${dirName}/src/remote`);
             // 判断文件夹是否存在的办法
             try {

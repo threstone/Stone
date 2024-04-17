@@ -25,6 +25,6 @@ module.exports = {
         'no-multi-spaces': 0,
     },
     exclude: [
-        "./test/"
+        "**/test"
     ]
 };
