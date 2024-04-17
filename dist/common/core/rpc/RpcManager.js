@@ -73,7 +73,13 @@ class RpcManager {
         }
         // 遍历所有服务的remote目录
         const serverRemoteMap = new Map();
-        const serversPath = path.join(process.cwd(), 'dist/app/servers');
+        let serversPath = path.join(process.cwd(), 'dist/app/servers');
+        try {
+            fs.accessSync(serversPath);
+        }
+        catch (error) {
+            serversPath = path.join(process.cwd(), 'app/servers');
+        }
         const dirs = fs.readdirSync(serversPath);
         for (let index = 0; index < dirs.length; index++) {
             const dirName = dirs[index];
@@ -172,52 +178,52 @@ declare interface RpcRouterOptions {
         
 declare class rpc {
 `;
-        const serverRemoteMap = this.getRemoteInfo();
-        let serverDeclare = '';
-        let remoteDeclare = '';
-        serverRemoteMap.forEach((remoteClassMap, serverName) => {
-            const serverType = CommonUtils_1.CommonUtils.firstCharToUpperCase(serverName);
-            rpcDeclare += `    static ${serverName}: typeof ${serverType};\n`;
-            serverDeclare += `\ndeclare class ${serverType} {\n`;
-            remoteClassMap.forEach((remoteClass, className) => {
-                const classTypeName = `${serverType}_${className}`;
-                serverDeclare += `    static ${CommonUtils_1.CommonUtils.firstCharToLowerCase(className)}: typeof ${classTypeName};\n`;
-                remoteDeclare += `\ndeclare class ${classTypeName} {\n`;
-                const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
-                const funcDescList = this.getClassFunctionDesc(serverName, className, functionList);
-                // 将具体方法写入
-                funcDescList.forEach((funcDesc) => {
-                    remoteDeclare += `    static ${funcDesc}\n`;
+        try {
+            const serverRemoteMap = this.getRemoteInfo();
+            let serverDeclare = '';
+            let remoteDeclare = '';
+            serverRemoteMap.forEach((remoteClassMap, serverName) => {
+                const serverType = CommonUtils_1.CommonUtils.firstCharToUpperCase(serverName);
+                rpcDeclare += `    static ${serverName}: typeof ${serverType};\n`;
+                serverDeclare += `\ndeclare class ${serverType} {\n`;
+                remoteClassMap.forEach((remoteClass, className) => {
+                    const classTypeName = `${serverType}_${className}`;
+                    serverDeclare += `    static ${CommonUtils_1.CommonUtils.firstCharToLowerCase(className)}: typeof ${classTypeName};\n`;
+                    remoteDeclare += `\ndeclare class ${classTypeName} {\n`;
+                    const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
+                    const funcDescList = this.getClassFunctionDesc(serverName, className, functionList);
+                    // 将具体方法写入
+                    funcDescList.forEach((funcDesc) => {
+                        remoteDeclare += `    static ${funcDesc}\n`;
+                    });
+                    remoteDeclare += '}\n';
                 });
-                remoteDeclare += '}\n';
+                serverDeclare += '}\n';
             });
-            serverDeclare += '}\n';
-        });
-        rpcDeclare += '}\n';
-        rpcDeclare += serverDeclare;
-        rpcDeclare += remoteDeclare;
-        fs.writeFileSync(path.join(process.cwd(), '/app/RpcIndex.ts'), rpcDeclare);
-        fs.writeFileSync(path.join(process.cwd(), '/app/StoneIndex.ts'), fs.readFileSync(path.join(__dirname, '../../../../common/index.ts')));
+            rpcDeclare += '}\n';
+            rpcDeclare += serverDeclare;
+            rpcDeclare += remoteDeclare;
+            fs.writeFileSync(path.join(process.cwd(), '/app/RpcIndex.ts'), rpcDeclare);
+            fs.writeFileSync(path.join(process.cwd(), '/app/StoneIndex.ts'), fs.readFileSync(path.join(__dirname, '../../../../common/index.ts')));
+        }
+        catch (error) {
+            logger.error(`生成RPC描述文件失败`, error);
+        }
     }
     /** 获取remote class所有函数的描述信息 */
     static getClassFunctionDesc(serverType, className, functionList) {
         const funcDescList = [];
-        try {
-            const filePath = path.join(process.cwd(), `/app/servers/${serverType}/src/remote/${className}.ts`);
-            const fileText = fs.readFileSync(filePath, { encoding: 'utf8' });
-            functionList.forEach((funcName) => {
-                if (funcName === 'constructor') {
-                    return;
-                }
-                const res = this.getFunctionDesc(funcName, fileText);
-                if (res) {
-                    funcDescList.push(...res);
-                }
-            });
-        }
-        catch (error) {
-            logger.error(`RPC init Error`, error);
-        }
+        const filePath = path.join(process.cwd(), `/app/servers/${serverType}/src/remote/${className}.ts`);
+        const fileText = fs.readFileSync(filePath, { encoding: 'utf8' });
+        functionList.forEach((funcName) => {
+            if (funcName === 'constructor') {
+                return;
+            }
+            const res = this.getFunctionDesc(funcName, fileText);
+            if (res) {
+                funcDescList.push(...res);
+            }
+        });
         return funcDescList;
     }
     /** 获取remote class指定函数的描述信息 */

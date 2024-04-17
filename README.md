@@ -27,33 +27,77 @@ mkdir stoneDemo
 cd stoneDemo
 ```
 
-使用脚手架初始化项目:
+进入目录使用脚手架初始化项目:
 ```
 stone init
 ```
 
+安装项目依赖:
+```
+npm install
+```
+
+编译代码:
+```
+tsc
+```
+
+启动项目:
+```
+stone startAll dev
+```
+
 stoneDemo目录文件结构如下:
 ```
-app/
-config/
-index.ts
-package.json
-publish.bat
-tsconfig.json
-tsconfig_dist.json
+│  index.ts
+│  package.json
+│  publish.bat                          // 发布脚本
+│  tsconfig.json
+│  tsconfig_dist.json
+│
+├─app
+│  │  RpcIndex.ts                       // RPC方法定义
+│  │  StoneIndex.ts                     // 框架提供的一些全局定义
+│  │
+│  └─servers
+│      └─server_template                // server目录
+│          ├─config                     // 用于存放此服务所需配置,可删除
+│          │      config.json
+│          │
+│          └─src                        // 源码文件夹
+│              ├─bin
+│              │      main.ts           // 服务入口文件
+│              │
+│              ├─remote                 // RPC文件存放目录
+│              │      DemoRemote.ts     // 自定义RCP类
+│              │
+│              └─test                   // 单元测试目录,可删除
+│                      Test.test.ts 
+│
+└─config                                // 全局配置目录,用于存放一些公共配置
+        servers.json                    // servers配置
 ```
-
 ##### 2. 服务创建
-复制 servers\server_template 模板于servers中,并重命名为你所希望的名称,
-例如创建一个gate服务器,创建后servers目录如下:
+打开 `app\servers\` 可以看到脚手架工具已经生成了一个模板服务server_template。
+server_template的目录如下:
 ```
-servers:
-    -- gate
-    -- server_template
+├─config
+│      config.json
+│
+└─src
+    ├─bin
+    │      main.ts
+    │
+    ├─remote
+    │      DemoRemote.ts
+    │
+    └─test
+            Test.test.ts
 ```
+除了入口文件外,所有其他文件及文件夹都可以删除,但如果要定义远程调用函数,则必须定义在`src\remote\`内。
 
 ##### 3. 配置启动服务
-接下来将 config\servers.json 修改为如下信息:
+打开`config\servers.json`将看到如下信息:
 ```json
 {
     "dev": {
@@ -65,14 +109,14 @@ servers:
             ],
             "isTest": true
         },
-        "gate": [
+        "server_template": [
             {
-                "nodeId": "Gate1",
+                "nodeId": "server_template1",
                 "ip": "127.0.0.1",
                 "autuResume": true
             },
             {
-                "nodeId": "Gate2",
+                "nodeId": "server_template2",
                 "ip": "127.0.0.1",
                 "autuResume": true
             }
@@ -83,38 +127,41 @@ servers:
 其中 `dev` 表示环境,正常情况下服务可能包含多个环境如`dev` `test` `prod`,
 `master`为框架管理程序,管理整个后端服务的创建,每个环境下master的配置必不可少。
 
-接下来`gate`为servers中新建的服务,名称必须一一对应,而`gate`的值为一个
-数组,其中有多少个元素,将启动多少个gate实例,自定义服务的值都必须为数组。
+接下来`server_template`为servers中新建的服务,名称必须一一对应,而`server_template`的值为一个
+数组,其中有多少个元素,就会启动多少个server_template实例,并且元素内的所有内容都将被作为启动参数
+带入服务。自定义服务的值都必须为数组。
 具体含义如下注释:
 ```json
 {
     "dev": {
         "master": {
-            "ip": "127.0.0.1",          // master ip 目前暂不支持创建服务于其他机器上，此参数暂时无用
-            "port": 999,                // 命令监听端口
-            "rpcPorts": [               // RPC 监听端口列表,配置多少个元素将启动对应数量的RPC Server
+            "ip": "127.0.0.1",                      // master ip 目前暂不支持创建服务于其他机器上，此参数暂时无用
+            "port": 999,                            // 命令监听端口
+            "rpcPorts": [                           // RPC 监听端口列表,配置多少个元素将启动对应数量的RPC Server
                 995
             ],
-            "isTest": true              // 表明是否测试环境,测试环境下每次启动都会重新生成RPC Typescript定义文件
+            "isTest": true                          // 表明是否测试环境,测试环境下每次启动都会重新生成RPC Typescript定义文件
         },
-        "gate": [
+        "server_template": [
             {
-                "nodeId": "Gate1",      // 自定义进程名称
-                "ip": "127.0.0.1",      // 目前暂不支持创建服务于其他机器上，此参数暂时无用
-                "autuResume": true      // 是否自动重启
+                "nodeId": "server_template1",       // 自定义进程名称
+                "ip": "127.0.0.1",                  // 目前暂不支持创建服务于其他机器上，此参数暂时无用
+                "autuResume": true                  // 是否自动重启
             },
             {
-                "nodeId": "Gate2",      // 自定义进程名称
-                "ip": "127.0.0.1",      // 目前暂不支持创建服务于其他机器上，此参数暂时无用
-                "autuResume": true      // 是否自动重启
+                "nodeId": "server_template2",       // 自定义进程名称
+                "ip": "127.0.0.1",                  // 目前暂不支持创建服务于其他机器上，此参数暂时无用
+                "autuResume": true                  // 是否自动重启
             }
         ]
     }
 }
 ```
 
+所以此配置的含义为启动两个server_template服务实例,分别为server_template1和server_template2
+
 ##### 4. 启动服务
-由于项目完全由typescript编写,所以每当修改typescript代码,都需要在项目下执行命令以编译javascript代码
+由于项目完全由typescript编写,所以每当修改typescript代码,都需要在项目下执行命令以编译javascript代码:
 ```
 tsc
 ```
@@ -129,18 +176,28 @@ tsc -w
 stone startAll dev
 ```
 
-启动后将看到日志输出
+启动后将看到日志输出:
 ```
-D:\Project\Stone> stone startAll dev
-[D:\Project\Stone\common\core\master\src\master.ts:11:16] [2024-04-15T16:16:33.444] [INFO] [master] [35816] init ...
-[D:\Project\Stone\common\core\master\src\CommandServer.ts:15:20] [2024-04-15T16:16:33.458] [INFO] [master] start common server successfully, port:999
-[D:\Project\Stone\common\core\rpc\RpcServer.ts:14:16] [2024-04-15T16:16:33.520] [INFO] [RPC995] [19788] rpc server start, port:995
-[D:\Project\Stone\servers\gate\src\GlobalVar.ts:3:16] [2024-04-15T16:16:33.589] [INFO] [Gate1] init ...
-[D:\Project\Stone\servers\gate\src\GlobalVar.ts:3:16] [2024-04-15T16:16:33.590] [INFO] [Gate2] init ...
-[D:\Project\Stone\common\core\rpc\RpcClient.ts:74:20] [2024-04-15T16:16:35.104] [INFO] [Gate2] Gate2[17668] connect rpc server successfully
-[D:\Project\Stone\common\core\rpc\RpcClient.ts:74:20] [2024-04-15T16:16:35.105] [INFO] [Gate1] Gate1[2552] connect rpc server successfully
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\rpc\RpcServer.ts:12:16] [2024-04-17T14:28:25.240] [INFO] [RPC995] [40920] rpc server start, port:995
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\master\src\GlobalVar.ts:9:16] [2024-04-17T14:28:25.270] [INFO] [master] [25056] init ...
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\master\src\CommandServer.ts:15:20] [2024-04-17T14:28:25.283] [INFO] [master] start common server successfully, port:999
+[D:\threstone\stoneDemo\app\servers\server_template\src\bin\main.ts:3:8] [2024-04-17T14:28:25.392] [INFO] [server_template2] init...
+[D:\threstone\stoneDemo\app\servers\server_template\src\bin\main.ts:3:8] [2024-04-17T14:28:25.392] [INFO] [server_template1] init...
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\rpc\RpcClient.ts:74:20] [2024-04-17T14:28:26.915] [INFO] [server_template1] server_template1[40280] connect rpc server successfully
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\rpc\RpcClient.ts:74:20] [2024-04-17T14:28:26.916] [INFO] [server_template2] server_template2[32820] connect rpc server successfully
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.918] [INFO] [server_template1] hahaha
+[D:\threstone\stoneDemo\app\servers\server_template\src\bin\main.ts:9:12] [2024-04-17T14:28:26.919] [INFO] [server_template1] rpc.server_template.demoRemote.callLog result:hahaha
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.920] [INFO] [server_template1] hahaha0
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.921] [INFO] [server_template1] hahaha1
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.921] [INFO] [server_template1] hahaha2
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.922] [INFO] [server_template2] hahaha0
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.925] [INFO] [server_template2] hahaha1
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.925] [INFO] [server_template2] hahaha2
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:15:16] [2024-04-17T14:28:26.937] [INFO] [server_template2] hahaha0
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:15:16] [2024-04-17T14:28:27.933] [INFO] [server_template2] hahaha1
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:15:16] [2024-04-17T14:28:28.931] [INFO] [server_template2] hahaha2
 ```
-通过日志可以看到创建的gate1与gate2进程成功启动了。
+通过日志可以看到创建的server_template1与server_template2进程成功启动了。
 
 具体关于stone的命令可以执行如下命令查看帮助:
 ```
@@ -152,9 +209,9 @@ RPC为后端各个进程之间通讯的主要方式,本框架提供简单且附�
 
 
 ###### 1.定义远程方法
-在 servers\gata\src\remote 中创建一个远程调用文件 GateRemote.ts 并添加如下代码:
+打开`app\servers\server_template\src\remote\DemoRemote.ts`,可以看到如下脚手架工具已经创建好的RPC函数:
 ```typescript
-export class GateRemote {
+export class DemoRemote {
     /** 定义一个方法打印参数并返回 */
     log(str: string): string {
         logger.log(str);
@@ -174,7 +231,10 @@ export class GateRemote {
 }
 ```
 
-添加完成后执行`stone updateRpcDesc`将生成对应的定义文件于 commom\core\rpc\index.ts 中
+修改代码后执行`stone updateRpcDesc`将生成对应的定义文件于`app\RpcIndex.ts`中,
+后续每一次修改RPC函数,都需要执行此命令以更新定义,或者在测试环境下启动项目将自动
+更新RPC定义文件。
+`app\RpcIndex.ts`中RPC定义如下:
 ```typescript
 declare interface RpcRouterOptions {
     type?: number | 0/* random */ | 1/* target */ | 2/* all */;
@@ -182,14 +242,14 @@ declare interface RpcRouterOptions {
 }
         
 declare class rpc {
-    static gate: typeof Gate;
+    static server_template: typeof Server_template;
 }
 
-declare class Gate {
-    static gateRemote: typeof Gate_GateRemote;
+declare class Server_template {
+    static demoRemote: typeof Server_template_DemoRemote;
 }
 
-declare class Gate_GateRemote {
+declare class Server_template_DemoRemote {
     static callLog(routeOption: RpcRouterOptions, str: string): Promise<string>;
     static sendLog(routeOption: RpcRouterOptions, str: string): void;
     static callDelayLog(routeOption: RpcRouterOptions, str: string, delayTime: number): Promise<string>;
@@ -199,49 +259,52 @@ declare class Gate_GateRemote {
 其中以call为开头的方法将接收RPC函数的返回值,而send为开头的方法将不关注返回值。
 
 ###### 2.测试远程方法
-修改 servers\gate\src\GlobalVal.ts 代码如下:
+打开 `app\servers\server_template\src\bin\main.ts` 代码如下:
 ```typescript
-import { RpcRouteType, StoneEvent } from "../../../common/StoneDefine";
+import { StoneEvent, RpcRouteType } from "stone-framework";
 
-export class GlobalVar {
-    static init() {
-        logger.info('init ...');
-        if (serverConfig.nodeId === 'Gate1') {
-            eventEmitter.once(StoneEvent.RpcServerConnected, this.test.bind(this));
-        }
+logger.info('init...');
+if (serverConfig.nodeId === 'server_template1') {
+    eventEmitter.once(StoneEvent.RpcServerConnected, rpcTest.bind(this));
+}
+async function rpcTest() {
+    const result = await rpc.server_template.demoRemote.callLog({ type: RpcRouteType.Random }, 'hahaha');
+    logger.info(`rpc.server_template.demoRemote.callLog result:${result}`);
+
+    for (let index = 0; index < 3; index++) {
+        rpc.server_template.demoRemote.sendLog({ type: RpcRouteType.All }, `hahaha${index}`);
     }
 
-    static async test() {
-        const result = await rpc.gate.gateRemote.callLog({ type: RpcRouteType.Random }, 'hahaha');
-        logger.info(`rpc.gate.gateRemote.callLog result:${result}`);
-
-        for (let index = 0; index < 3; index++) {
-            rpc.gate.gateRemote.sendLog({ type: RpcRouteType.All }, `hahaha${index}`); 
-        }
-
-        for (let index = 0; index < 3; index++) {
-            rpc.gate.gateRemote.sendDelayLog({ type: RpcRouteType.Target, nodeId: 'Gate2' }, `hahaha${index}`, index * 1000);
-        }
+    for (let index = 0; index < 3; index++) {
+        rpc.server_template.demoRemote.sendDelayLog({ type: RpcRouteType.Target, nodeId: 'server_template2' }, `hahaha${index}`, index * 1000);
     }
 }
+
 ```
 
-`rpc.gate.gateRemote.callLog`表示为`命名空间.服务器类型.远程调用类.远程调用方法`
+`rpc.server_template.demoRemote.callLog`表示为`命名空间.服务器类型.远程调用类.远程调用方法`
 远程调用第一个参数恒为routeOption,用来决定远程调用的目标,支持随机目标、指定目标、和所有目标。
 
 编译执行代码后将获得如下输出:
 ```
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:4:16] [2024-04-15T18:01:06.257] [INFO] [Gate1] hahaha
-[D:\Project\Stone\servers\gate\src\GlobalVar.ts:13:16] [2024-04-15T18:01:06.259] [INFO] [Gate1] rpc.gate.gateRemote.callLog result:hahaha
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:4:16] [2024-04-15T18:01:06.263] [INFO] [Gate1] hahaha0
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:4:16] [2024-04-15T18:01:06.264] [INFO] [Gate1] hahaha1
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:4:16] [2024-04-15T18:01:06.265] [INFO] [Gate1] hahaha2
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:4:16] [2024-04-15T18:01:06.265] [INFO] [Gate2] hahaha0
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:4:16] [2024-04-15T18:01:06.266] [INFO] [Gate2] hahaha1
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:4:16] [2024-04-15T18:01:06.268] [INFO] [Gate2] hahaha2
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:15:16] [2024-04-15T18:01:06.278] [INFO] [Gate2] hahaha0
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:15:16] [2024-04-15T18:01:07.274] [INFO] [Gate2] hahaha1
-[D:\Project\Stone\servers\gate\src\remote\GateRemote.ts:15:16] [2024-04-15T18:01:08.275] [INFO] [Gate2] hahaha2
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\rpc\RpcServer.ts:12:16] [2024-04-17T14:28:25.240] [INFO] [RPC995] [40920] rpc server start, port:995
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\master\src\GlobalVar.ts:9:16] [2024-04-17T14:28:25.270] [INFO] [master] [25056] init ...
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\master\src\CommandServer.ts:15:20] [2024-04-17T14:28:25.283] [INFO] [master] start common server successfully, port:999
+[D:\threstone\stoneDemo\app\servers\server_template\src\bin\main.ts:3:8] [2024-04-17T14:28:25.392] [INFO] [server_template2] init...
+[D:\threstone\stoneDemo\app\servers\server_template\src\bin\main.ts:3:8] [2024-04-17T14:28:25.392] [INFO] [server_template1] init...
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\rpc\RpcClient.ts:74:20] [2024-04-17T14:28:26.915] [INFO] [server_template1] server_template1[40280] connect rpc server successfully
+[C:\Users\yw\AppData\Roaming\npm\node_modules\stone-framework\common\core\rpc\RpcClient.ts:74:20] [2024-04-17T14:28:26.916] [INFO] [server_template2] server_template2[32820] connect rpc server successfully
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.918] [INFO] [server_template1] hahaha
+[D:\threstone\stoneDemo\app\servers\server_template\src\bin\main.ts:9:12] [2024-04-17T14:28:26.919] [INFO] [server_template1] rpc.server_template.demoRemote.callLog result:hahaha
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.920] [INFO] [server_template1] hahaha0
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.921] [INFO] [server_template1] hahaha1
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.921] [INFO] [server_template1] hahaha2
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.922] [INFO] [server_template2] hahaha0
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.925] [INFO] [server_template2] hahaha1
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:4:16] [2024-04-17T14:28:26.925] [INFO] [server_template2] hahaha2
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:15:16] [2024-04-17T14:28:26.937] [INFO] [server_template2] hahaha0
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:15:16] [2024-04-17T14:28:27.933] [INFO] [server_template2] hahaha1
+[D:\threstone\stoneDemo\app\servers\server_template\src\remote\DemoRemote.ts:15:16] [2024-04-17T14:28:28.931] [INFO] [server_template2] hahaha2
 ```
 
 ##### 6. 服务发布

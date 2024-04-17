@@ -18,21 +18,6 @@ declare interface IGameMessage {
     toJSON(): { [k: string]: any };
 }
 
-declare interface IMysqlOption {
-    host: string
-    port: number
-    user: string
-    password: string
-    timezone: string
-}
-
-declare interface IRedisOption {
-    host: string
-    port: number
-    password: string
-    enableOfflineQueue: boolean
-}
-
 //启动参数
 declare interface ILauncherOption {
     port: number

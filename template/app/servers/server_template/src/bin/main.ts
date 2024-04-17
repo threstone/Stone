@@ -4,7 +4,6 @@ logger.info('init...');
 if (serverConfig.nodeId === 'server_template1') {
     eventEmitter.once(StoneEvent.RpcServerConnected, rpcTest.bind(this));
 }
-eventEmitter.once(StoneEvent.RpcServerConnected, rpcTest.bind(this));
 async function rpcTest() {
     const result = await rpc.server_template.demoRemote.callLog({ type: RpcRouteType.Random }, 'hahaha');
     logger.info(`rpc.server_template.demoRemote.callLog result:${result}`);

@@ -1,10 +1,10 @@
 {
   "name": "stone-framework",
-  "version": "1.0.12",
+  "version": "1.0.20",
   "description": "Node.js + Typescript server framework",
   "main": "./dist/index.js",
   "bin": {
-    "stone": "./dist/common/control/Command.js"
+    "stone": "./dist/common/control/Commander.js"
   },
   "scripts": {
     "test": "mocha ./dist/**/test/*.test.js",

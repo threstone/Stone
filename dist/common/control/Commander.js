@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 "use strict";
-// const os = require('os');
-// const fs = require('fs').promises;
-// const path = require('path');
-// const childProcess = require('child_process');
 Object.defineProperty(exports, "__esModule", { value: true });
 const os = require("os");
 const fs_1 = require("fs");
 const path = require("path");
 const child_process = require("child_process");
+global.logger = console;
 const args = process.argv.slice(2);
 if (args.length === 0) {
     showHelp();
@@ -48,42 +45,10 @@ function handleCmd() {
         showHelp();
     }
 }
-/** 检查是否build js */
-async function checkBuild() {
-    const mainPath = path.join(__dirname, '../core/master/src/bin/');
-    const files = await fs_1.promises.readdir(mainPath);
-    if (files.indexOf('main.js') !== -1) {
-        return;
-    }
-    const scriptPath = path.join(__dirname, '../../dist/common/core/master/src/bin/main.js');
-    // 判断文件是否存在的办法
-    try {
-        await fs_1.promises.access(scriptPath);
-        return;
-    }
-    catch (e) {
-    }
-    try {
-        console.log('building...');
-        child_process.execSync('tsc', {});
-        console.log('build success');
-    }
-    catch (error) {
-        console.error('tsc error ', error);
-    }
-}
 /** 启动服务 */
 async function startall(environmentArgs) {
     environment = environmentArgs || environment;
-    let scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
-    // 判断文件是否存在的办法
-    try {
-        await fs_1.promises.access(scriptPath);
-    }
-    catch (error) {
-        await checkBuild();
-        scriptPath = path.join(__dirname, '../../dist/common/core/server/ServerLauncher.js');
-    }
+    const scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
     if (isBackgroud) {
         if (os.platform() == 'win32') {
             console.error('windows下暂时不支持后台启动');
@@ -139,14 +104,7 @@ function restart(nodeId) {
 }
 /** 生成并更新rpc类型描述文件 */
 async function updaterpcdesc() {
-    let scriptPath = path.join(__dirname, '../../dist/common/core/rpc/RpcManager.js');
-    // 判断文件是否存在的办法
-    try {
-        await fs_1.promises.access(scriptPath);
-    }
-    catch (error) {
-        checkBuild();
-    }
+    let scriptPath = path.join(__dirname, '../core/rpc/RpcManager.js');
     const rpcMgr = require(scriptPath);
     global.serversConfigMap = new Map();
     global.startupParam = {};
@@ -233,4 +191,4 @@ async function copyDir(src, dest) {
         }
     }
 }
-//# sourceMappingURL=Command.js.map
+//# sourceMappingURL=Commander.js.map
