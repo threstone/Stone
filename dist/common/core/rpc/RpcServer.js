@@ -28,6 +28,15 @@ class RpcServer {
                 }
             });
         });
+        /**
+         * 尽量保证所有客户端都连接上了再处理消息,增加一个缓冲时间
+         * 防止A call B 但是B还未连接上RPC server导致消息无法成功转发
+         */
+        this._isHandleMsg = false;
+        setTimeout(() => {
+            this._isHandleMsg = true;
+            eventEmitter.emit('RpcServerHandleStart');
+        }, 3000);
     }
     handleMessage(session, msg) {
         if (session.isInit === false) {
@@ -44,7 +53,14 @@ class RpcServer {
             this._nodeIdMap.set(session.nodeId, session);
             return;
         }
-        RpcUtils_1.RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
+        if (this._isHandleMsg) {
+            RpcUtils_1.RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
+        }
+        else {
+            eventEmitter.once('RpcServerHandleStart', () => {
+                RpcUtils_1.RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
+            });
+        }
     }
 }
 exports.server = new RpcServer();

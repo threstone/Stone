@@ -4,6 +4,7 @@ import * as path from 'path';
 import { CommonUtils } from '../../CommonUtils';
 import { BaseWorker } from '../woker/BaseWorker';
 import { RpcClient } from './RpcClient';
+import { StoneEvent } from '../../StoneDefine';
 export class RpcManager {
 
     private static _index: number = 0;
@@ -67,13 +68,17 @@ export class RpcManager {
             return;
         }
         this._clients = [];
-        setTimeout(() => {
-            const config = serversConfigMap.get('master');
-            const rpcPorts = config.rpcPorts;
+        const config = serversConfigMap.get('master');
+        const rpcPorts = config.rpcPorts;
+        if (rpcPorts) {
             rpcPorts.forEach((port) => {
                 this._clients.push(new RpcClient(config.ip, port));
             });
-        }, 1500);
+        } else {
+            process.nextTick(() => {
+                eventEmitter.emit(StoneEvent.RpcServerConnected);
+            })
+        }
     }
 
     /** 获取服务remote信息 */

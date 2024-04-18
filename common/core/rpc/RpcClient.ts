@@ -10,14 +10,14 @@ export class RpcClient {
         try {
             let remoteObject = this._remoteMap.get(rpcMsg.className);
             if (!remoteObject) {
-                let remoteClass;
+                let remoteClass: any;
                 try {
                     remoteClass = require(
-                        path.join(process.cwd(), `dist/app/servers/${rpcMsg.serverName}/src/remote/${rpcMsg.className}`)
+                        path.join(process.cwd(), `dist/app/servers/${serverConfig.serverType}/src/remote/${rpcMsg.className}`)
                     )[rpcMsg.className];
                 } catch (error) {
                     remoteClass = require(
-                        path.join(process.cwd(), `app/servers/${rpcMsg.serverName}/src/remote/${rpcMsg.className}`)
+                        path.join(process.cwd(), `app/servers/${serverConfig.serverType}/src/remote/${rpcMsg.className}`)
                     )[rpcMsg.className];
                 }
                 remoteObject = new remoteClass;
@@ -77,8 +77,8 @@ export class RpcClient {
             this.isClose = false;
             // 第一条消息告知客户端信息
             this.send(serverConfig.serverType, serverConfig.nodeId, 'clientInfo', {}, []);
-            eventEmitter.emit(StoneEvent.RpcServerConnected);
             logger.info(`${serverConfig.nodeId}[${process.pid}] connect rpc server successfully`)
+            eventEmitter.emit(StoneEvent.RpcServerConnected);
         })
 
         socket.on('message', this.handleMessage.bind(this));

@@ -67,7 +67,11 @@ class RpcUtilsByJson {
     /** 获取转发的clients */
     static getRouteClient(reqMsg, serverMapList, nodeIdMap) {
         if (reqMsg.routeOptions.type === StoneDefine_1.RpcRouteType.Target /* target */) {
-            return [nodeIdMap.get(reqMsg.routeOptions.nodeId)];
+            const result = nodeIdMap.get(reqMsg.routeOptions.nodeId);
+            if ((result === null || result === void 0 ? void 0 : result.serverType) !== reqMsg.serverName) {
+                return [];
+            }
+            return [result];
         }
         else if (reqMsg.routeOptions.type === StoneDefine_1.RpcRouteType.All /* all */) {
             return serverMapList.get(reqMsg.serverName);
@@ -345,15 +349,18 @@ class RpcUtilsByBuffer {
     static getRouteClient(buffer, serverMapList, nodeIdMap) {
         const routeOptions = {};
         const offset = RpcUtilsByBuffer.readRouteOptions(routeOptions, buffer);
+        const serverName = RpcUtilsByBuffer.readStringFromBuffer(buffer, offset);
         if (routeOptions.type === StoneDefine_1.RpcRouteType.Target /* target */) {
-            return [nodeIdMap.get(routeOptions.nodeId)];
+            const result = nodeIdMap.get(routeOptions.nodeId);
+            if ((result === null || result === void 0 ? void 0 : result.serverType) !== serverName) {
+                return [];
+            }
+            return [result];
         }
         else if (routeOptions.type === StoneDefine_1.RpcRouteType.All /* all */) {
-            const serverName = RpcUtilsByBuffer.readStringFromBuffer(buffer, offset);
             return serverMapList.get(serverName);
         }
         else { /* random */
-            const serverName = RpcUtilsByBuffer.readStringFromBuffer(buffer, offset);
             const nodeList = serverMapList.get(serverName);
             return [nodeList[(this._randIndex++) % nodeList.length]];
         }

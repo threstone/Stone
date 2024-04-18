@@ -6,6 +6,7 @@ const path = require("path");
 const CommonUtils_1 = require("../../CommonUtils");
 const BaseWorker_1 = require("../woker/BaseWorker");
 const RpcClient_1 = require("./RpcClient");
+const StoneDefine_1 = require("../../StoneDefine");
 class RpcManager {
     static init() {
         this.doMasterTask();
@@ -58,13 +59,18 @@ class RpcManager {
             return;
         }
         this._clients = [];
-        setTimeout(() => {
-            const config = serversConfigMap.get('master');
-            const rpcPorts = config.rpcPorts;
+        const config = serversConfigMap.get('master');
+        const rpcPorts = config.rpcPorts;
+        if (rpcPorts) {
             rpcPorts.forEach((port) => {
                 this._clients.push(new RpcClient_1.RpcClient(config.ip, port));
             });
-        }, 1500);
+        }
+        else {
+            process.nextTick(() => {
+                eventEmitter.emit(StoneDefine_1.StoneEvent.RpcServerConnected);
+            });
+        }
     }
     /** 获取服务remote信息 */
     static getRemoteInfo() {
