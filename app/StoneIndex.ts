@@ -6,32 +6,10 @@ declare var startupParam: ILauncherOption
 declare var serversConfigMap: Map<string, ServerConfig>;
 /** 当前服务器配置 */
 declare var serverConfig: ServerConfig;
-/** 全局时间对象 */
+/** 全局事件对象 */
 declare var eventEmitter: NodeJS.EventEmitter;
 /** 全局logger */
 declare var logger: ILog;
-
-//游戏封包的结构
-declare interface IGameMessage {
-    cmd: number
-    scmd: number
-    toJSON(): { [k: string]: any };
-}
-
-declare interface IMysqlOption {
-    host: string
-    port: number
-    user: string
-    password: string
-    timezone: string
-}
-
-declare interface IRedisOption {
-    host: string
-    port: number
-    password: string
-    enableOfflineQueue: boolean
-}
 
 //启动参数
 declare interface ILauncherOption {

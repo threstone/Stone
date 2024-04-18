@@ -1,4 +1,3 @@
-
 /** rpc 请求结构 */
 declare interface RpcReqMsg {
     // rpc server根据type来决定作何操作
@@ -19,12 +18,4 @@ declare interface RpcTransferResult {
     fromNodeId: string;
     result: any;
     requestId?: number;
-}
-
-declare interface RpcRouterOptions {
-    type?: number | 0/* random */ | 1/* target */ | 2/* all */;
-    nodeId?: string;
-}
-        
-declare class rpc {
 }

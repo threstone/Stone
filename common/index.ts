@@ -6,7 +6,7 @@ declare var startupParam: ILauncherOption
 declare var serversConfigMap: Map<string, ServerConfig>;
 /** 当前服务器配置 */
 declare var serverConfig: ServerConfig;
-/** 全局时间对象 */
+/** 全局事件对象 */
 declare var eventEmitter: NodeJS.EventEmitter;
 /** 全局logger */
 declare var logger: ILog;
