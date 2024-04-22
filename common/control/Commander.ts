@@ -135,7 +135,7 @@ Options:
 
 Commands:
     
-    stone init                     在当前目录下创建模板工程(脚手架)         eg: stone init
+    stone init                     在当前目录下创建模板工程(脚手架命令)     eg: stone init
     stone startAll [environment]   启动服务                                 eg: stone startAll dev
     stone stopAll [environment]    停止所有进程                             eg: stone stopAll dev
     stone list [environment]       展示所有进程                             eg: stone list dev

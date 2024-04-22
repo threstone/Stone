@@ -1,55 +1,66 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonServer = void 0;
-const Koa = require("koa");
-const Router = require("koa-router");
-const BodyParser = require("koa-bodyparser");
+const http = require("http");
 const GlobalVar_1 = require("./GlobalVar");
 class CommonServer {
     constructor() {
         var _a;
         const port = ((_a = serversConfigMap.get('master')) === null || _a === void 0 ? void 0 : _a.port) || 1000;
-        const app = new Koa();
-        app.use(BodyParser());
-        this.addRouter(app);
-        app.listen(port, () => {
-            logger.info(`start common server successfully, port:${port}`);
-        });
+        http.createServer((req, res) => {
+            let datas;
+            req.on('data', (d) => {
+                !datas && (datas = '');
+                datas += d;
+            });
+            req.on('end', () => {
+                let body;
+                try {
+                    body = datas && JSON.parse(datas);
+                }
+                catch (error) {
+                }
+                this.doHandle(req, res, body);
+                res.end();
+            });
+        }).listen(port);
+        logger.info(`start common server successfully, port:${port}`);
     }
-    addRouter(app) {
-        const router = new Router();
-        app.use(router.routes());
-        router.get('/list', this.list.bind(this));
-        router.get('/kill', this.kill.bind(this));
-        router.get('/start', this.start.bind(this));
-        router.get('/restart', this.restart.bind(this));
-        router.get('/stopAll', this.stopAll.bind(this));
+    doHandle(req, res, data) {
+        if (req.url.startsWith('/list')) {
+            this.list(req, res, data);
+        }
+        else if (req.url.startsWith('/kill')) {
+            this.kill(req, res, data);
+        }
+        else if (req.url.startsWith('/start')) {
+            this.start(req, res, data);
+        }
+        else if (req.url.startsWith('/restart')) {
+            this.restart(req, res, data);
+        }
+        else if (req.url.startsWith('/stopAll')) {
+            this.stopAll(req, res, data);
+        }
     }
-    async list(ctx, next) {
-        ctx.response.body = GlobalVar_1.GlobalVar.nodeMgr.getServerInfo();
-        await next();
+    list(req, res, data) {
+        res.write(JSON.stringify(GlobalVar_1.GlobalVar.nodeMgr.getServerInfo()));
     }
-    async kill(ctx, next) {
+    kill(req, res, data) {
         var _a;
-        const body = ctx.request.body;
-        (_a = GlobalVar_1.GlobalVar.nodeMgr.serverMap.get(body.nodeId)) === null || _a === void 0 ? void 0 : _a.kill();
-        ctx.response.status = 200;
-        await next();
+        (_a = GlobalVar_1.GlobalVar.nodeMgr.serverMap.get(data.nodeId)) === null || _a === void 0 ? void 0 : _a.kill();
+        res.statusCode = 200;
     }
-    async start(ctx, next) {
-        const body = ctx.request.body;
-        GlobalVar_1.GlobalVar.nodeMgr.startServer(body.nodeId);
-        ctx.response.status = 200;
-        await next();
+    start(req, res, data) {
+        GlobalVar_1.GlobalVar.nodeMgr.startServer(data.nodeId);
+        res.statusCode = 200;
     }
-    async restart(ctx, next) {
-        const body = ctx.request.body;
-        GlobalVar_1.GlobalVar.nodeMgr.restart(body.nodeId);
-        ctx.response.status = 200;
-        await next();
+    restart(req, res, data) {
+        GlobalVar_1.GlobalVar.nodeMgr.restart(data.nodeId);
+        res.statusCode = 200;
     }
-    async stopAll(ctx, next) {
-        ctx.response.status = 200;
+    stopAll(req, res, data) {
+        res.statusCode = 200;
         logger.info('process exit');
         GlobalVar_1.GlobalVar.nodeMgr.serverMap.forEach((node) => {
             node.kill();
@@ -57,7 +68,6 @@ class CommonServer {
         setTimeout(() => {
             process.exit();
         }, 500);
-        await next();
     }
 }
 exports.CommonServer = CommonServer;
