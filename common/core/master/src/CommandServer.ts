@@ -35,6 +35,8 @@ export class CommonServer {
             this.restart(req, res, data);
         } else if (req.url.startsWith('/stopAll')) {
             this.stopAll(req, res, data);
+        }else{
+            res.write('unknow request')
         }
     }
 

@@ -42,6 +42,9 @@ class CommonServer {
         else if (req.url.startsWith('/stopAll')) {
             this.stopAll(req, res, data);
         }
+        else {
+            res.write('unknow request');
+        }
     }
     list(req, res, data) {
         res.write(JSON.stringify(GlobalVar_1.GlobalVar.nodeMgr.getServerInfo()));
