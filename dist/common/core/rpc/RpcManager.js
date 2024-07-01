@@ -80,21 +80,14 @@ class RpcManager {
         // 遍历所有服务的remote目录
         const serverRemoteMap = new Map();
         let serversPath = path.join(process.cwd(), 'dist/app/servers');
-        try {
-            fs.accessSync(serversPath);
-        }
-        catch (error) {
+        if (this.fileExist(serversPath) === false) {
             serversPath = path.join(process.cwd(), 'app/servers');
         }
         const dirs = fs.readdirSync(serversPath);
         for (let index = 0; index < dirs.length; index++) {
             const dirName = dirs[index];
             const remotePath = path.join(serversPath, `/${dirName}/src/remote`);
-            // 判断文件夹是否存在的办法
-            try {
-                fs.accessSync(remotePath);
-            }
-            catch (error) {
+            if (this.fileExist(remotePath) === false) {
                 continue;
             }
             const remoteFiles = fs.readdirSync(remotePath);
@@ -105,7 +98,7 @@ class RpcManager {
                 }
                 const className = fileName.substring(0, fileName.indexOf('.js'));
                 const remoteClass = require(`${remotePath}/${fileName}`);
-                remoteMap.set(className, remoteClass[className]);
+                remoteClass[className] && remoteMap.set(className, remoteClass[className]);
             });
             serverRemoteMap.set(dirName, remoteMap);
         }
@@ -171,11 +164,14 @@ declare class rpc {
                 rpcDeclare += `    static ${serverName}: typeof ${serverType};\n`;
                 serverDeclare += `\ndeclare class ${serverType} {\n`;
                 remoteClassMap.forEach((remoteClass, className) => {
+                    const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
+                    const funcDescList = this.getClassFunctionDesc(serverName, className, functionList);
+                    if (!funcDescList) {
+                        return;
+                    }
                     const classTypeName = `${serverType}_${className}`;
                     serverDeclare += `    static ${CommonUtils_1.CommonUtils.firstCharToLowerCase(className)}: typeof ${classTypeName};\n`;
                     remoteDeclare += `\ndeclare class ${classTypeName} {\n`;
-                    const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
-                    const funcDescList = this.getClassFunctionDesc(serverName, className, functionList);
                     // 将具体方法写入
                     funcDescList.forEach((funcDesc) => {
                         remoteDeclare += `    static ${funcDesc}\n`;
@@ -198,6 +194,9 @@ declare class rpc {
     static getClassFunctionDesc(serverType, className, functionList) {
         const funcDescList = [];
         const filePath = path.join(process.cwd(), `/app/servers/${serverType}/src/remote/${className}.ts`);
+        if (this.fileExist(filePath) === false) {
+            return;
+        }
         const fileText = fs.readFileSync(filePath, { encoding: 'utf8' });
         functionList.forEach((funcName) => {
             if (funcName === 'constructor') {
@@ -227,6 +226,16 @@ declare class rpc {
         const call = `call${modelFunc}${resultTypeIndex !== -1 ? `: ${isPromiseResult ? resultType : `Promise<${resultType}>`};` : ''}`;
         const send = `send${modelFunc}: void;`;
         return [call, send];
+    }
+    // 判断文件夹是否存在的办法
+    static fileExist(path) {
+        try {
+            fs.accessSync(path);
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
     }
 }
 exports.RpcManager = RpcManager;
