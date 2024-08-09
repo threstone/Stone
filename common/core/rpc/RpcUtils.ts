@@ -61,7 +61,26 @@ export class RpcUtilsByJson {
 
     /** 反序列化rpc 信息,返回rpc请求或结果 */
     static decodeRpcMsg(jsonStr: string): RpcReqMsg | RpcTransferResult {
-        return JSON.parse(jsonStr);
+        const msg = JSON.parse(jsonStr);
+        switch (msg.type) {
+            case RpcMessageType.call:
+            case RpcMessageType.send:
+                const rpcReqMsg = msg as RpcReqMsg;
+                for (let index = 0; index < rpcReqMsg.args.length; index++) {
+                    const arg = rpcReqMsg.args[index];
+                    if (arg && arg.type === 'Buffer') {
+                        rpcReqMsg.args[index] = Buffer.from(arg);
+                    }
+                }
+                break;
+            case RpcMessageType.result:
+                const rpcTransferResult = msg as RpcTransferResult;
+                if (rpcTransferResult.result && rpcTransferResult.result.type === 'Buffer') {
+                    rpcTransferResult.result = Buffer.from(rpcTransferResult.result);
+                }
+                break;
+        }
+        return msg;
     }
 
     /** 序列化结果结构体 */
