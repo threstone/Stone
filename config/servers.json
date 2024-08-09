@@ -10,7 +10,12 @@
         },
         "server_template": [
             {
-                "nodeId": "server_template"
+                "nodeId": "server_template1",
+                "autuResume": true
+            },
+            {
+                "nodeId": "server_template2",
+                "autuResume": true
             }
         ]
     }

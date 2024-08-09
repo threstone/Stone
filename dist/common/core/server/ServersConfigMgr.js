@@ -10,14 +10,19 @@ class ServersConfigMgr {
             this._configFilePath = path.join(process.cwd(), '/config/servers.json');
             const serversConfig = require(this._configFilePath);
             this._watcher = fs.watch(this._configFilePath, () => {
-                logger.info('update servers.json');
-                // 删除缓存
-                delete require.cache[this._configFilePath];
-                // 重新require
-                require(this._configFilePath);
-                this.ininConfigMap(require(this._configFilePath));
-                // 派发更新事件
-                eventEmitter.emit(StoneDefine_1.StoneEvent.ServersConfigUpdate);
+                try {
+                    const config = require(this._configFilePath);
+                    // 删除缓存
+                    delete require.cache[this._configFilePath];
+                    // 重新require
+                    this.ininConfigMap(config);
+                    // 派发更新事件
+                    eventEmitter.emit(StoneDefine_1.StoneEvent.ServersConfigUpdate);
+                    logger.info('update servers.json');
+                }
+                catch (error) {
+                    logger.error('热更servers配置异常', error.message);
+                }
             });
             this.ininConfigMap(serversConfig);
             global.serverConfig = serversConfigMap.get(startupParam.nodeId);
