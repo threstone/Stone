@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServerLauncher = void 0;
 const ServerInit_1 = require("./ServerInit");
 const path = require("path");
+const fs = require("fs");
 class ServerLauncher {
     static start() {
         ServerInit_1.ServerInit.init();
@@ -14,11 +15,32 @@ class ServerLauncher {
         }
         else {
             try {
-                require(path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main`));
+                let mainPath = path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main.js`);
+                if (this.isFileExist(mainPath) === true) {
+                    require(mainPath);
+                }
+                else {
+                    mainPath = path.join(process.cwd(), `app/servers/${startupParam.serverType}/src/bin/main.js`);
+                    if (this.isFileExist(mainPath) === true) {
+                        require(mainPath);
+                    }
+                    else {
+                        logger.warn('找不到入口文件:', mainPath.substring(0, mainPath.length - 3));
+                    }
+                }
             }
             catch (error) {
-                require(path.join(process.cwd(), `app/servers/${startupParam.serverType}/src/bin/main`));
+                logger.error(`入口文件执行出错`, error);
             }
+        }
+    }
+    static isFileExist(filePath) {
+        try {
+            fs.statSync(filePath);
+            return true;
+        }
+        catch (error) {
+            return false;
         }
     }
 }

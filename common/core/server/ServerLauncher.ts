@@ -1,5 +1,6 @@
 import { ServerInit } from "./ServerInit";
 import * as path from 'path';
+import * as fs from 'fs';
 
 export class ServerLauncher {
     static start() {
@@ -10,10 +11,29 @@ export class ServerLauncher {
             require('../master/src/bin/main');
         } else {
             try {
-                require(path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main`));
+                let mainPath = path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main.js`);
+                if (this.isFileExist(mainPath) === true) {
+                    require(mainPath);
+                } else {
+                    mainPath = path.join(process.cwd(), `app/servers/${startupParam.serverType}/src/bin/main.js`);
+                    if (this.isFileExist(mainPath) === true) {
+                        require(mainPath);
+                    } else {
+                        logger.warn('找不到入口文件:', mainPath.substring(0, mainPath.length - 3));
+                    }
+                }
             } catch (error) {
-                require(path.join(process.cwd(), `app/servers/${startupParam.serverType}/src/bin/main`));
+                logger.error(`入口文件执行出错`, error);
             }
+        }
+    }
+
+    static isFileExist(filePath: string) {
+        try {
+            fs.statSync(filePath);
+            return true;
+        } catch (error) {
+            return false;
         }
     }
 }

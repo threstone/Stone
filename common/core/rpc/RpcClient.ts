@@ -113,10 +113,6 @@ export class RpcClient {
     private handleResult(rpcResult: RpcTransferResult) {
         const requestCache = this._requestMap.get(rpcResult.requestId);
         if (!requestCache) return;
-        // 返回值结果如果是buffer,需要单独处理
-        if (rpcResult.result?.type === 'Buffer') {
-            rpcResult.result = Buffer.from(rpcResult.result);
-        }
         requestCache.resolve(rpcResult.result);
         this._requestMap.delete(rpcResult.requestId);
     }

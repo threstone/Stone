@@ -95,14 +95,9 @@ class RpcClient {
         }
     }
     handleResult(rpcResult) {
-        var _a;
         const requestCache = this._requestMap.get(rpcResult.requestId);
         if (!requestCache)
             return;
-        // 返回值结果如果是buffer,需要单独处理
-        if (((_a = rpcResult.result) === null || _a === void 0 ? void 0 : _a.type) === 'Buffer') {
-            rpcResult.result = Buffer.from(rpcResult.result);
-        }
         requestCache.resolve(rpcResult.result);
         this._requestMap.delete(rpcResult.requestId);
     }
