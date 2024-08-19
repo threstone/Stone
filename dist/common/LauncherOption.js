@@ -11,11 +11,12 @@ class LauncherOption {
             let value = kvInfo[1];
             this[key] = value;
         }
+        const anyThis = this;
+        this.autuResume = anyThis['autuResume'] === 'true';
+        this.logTrace = anyThis['logTrace'] === 'true';
         global.nodeId = this.nodeId;
         global.env = this.env;
     }
-    get maxUser() { return this._maxUser; }
-    set maxUser(value) { this._maxUser = parseInt(value); }
 }
 exports.launcherOption = new LauncherOption();
 //# sourceMappingURL=LauncherOption.js.map

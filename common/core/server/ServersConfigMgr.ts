@@ -19,7 +19,7 @@ export class ServersConfigMgr {
                     this.ininConfigMap(config);
                     // 派发更新事件
                     eventEmitter.emit(StoneEvent.ServersConfigUpdate);
-                    logger.info('update servers.json');
+                    logger.debug('update servers.json');
                 } catch (error) {
                     logger.error('热更servers配置异常', error.message);
                 }

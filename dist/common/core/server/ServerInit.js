@@ -12,15 +12,17 @@ class ServerInit {
         global.startupParam = LauncherOption_1.launcherOption;
         // 初始化全局事件对象
         global.eventEmitter = new events_1.EventEmitter();
-        // 日志初始化
-        ServerInit.initLogger();
         // 初始化service config manager
         ServersConfigMgr_1.ServersConfigMgr.init();
+        // 日志初始化
+        ServerInit.initLogger();
         // RPC模块初始化
         RpcManager_1.RpcManager.init();
     }
     static initLogger() {
+        const s = startupParam;
         const nodeId = (startupParam === null || startupParam === void 0 ? void 0 : startupParam.nodeId) || 'app';
+        const pattern = s.logTrace === true ? '[%f:%l:%o] [%d] [%p] [%c]' : '[%d] [%p] [%c]';
         const loggerConfig = {
             "appenders": {
                 "console": {
@@ -28,7 +30,7 @@ class ServerInit {
                     "category": "console",
                     "layout": {
                         "type": "pattern",
-                        "pattern": "%[[%f:%l:%o] [%d] [%p] [%c]%] %m"
+                        "pattern": `%[${pattern}%] %m`
                     }
                 },
                 "debug": {
@@ -38,7 +40,7 @@ class ServerInit {
                     "pattern": "yyyy-MM-dd.log",
                     "layout": {
                         "type": "pattern",
-                        "pattern": "[%f:%l:%o] [%d] [%p] [%c] %m"
+                        "pattern": `${pattern} %m`
                     }
                 },
                 "err": {
@@ -48,7 +50,7 @@ class ServerInit {
                     "pattern": "yyyy-MM-dd.log",
                     "layout": {
                         "type": "pattern",
-                        "pattern": "[%f:%l:%o] [%d] [%p] [%c] %m"
+                        "pattern": `${pattern} %m`
                     }
                 }
             },
@@ -59,8 +61,8 @@ class ServerInit {
                         "console",
                         "debug"
                     ],
-                    "level": "ALL",
-                    "enableCallStack": true
+                    "level": s.logLevel || 'ALL',
+                    "enableCallStack": s.logTrace
                 },
                 [nodeId + ' error']: {
                     "appenders": [
@@ -68,7 +70,7 @@ class ServerInit {
                         "err"
                     ],
                     "level": "error",
-                    "enableCallStack": true
+                    "enableCallStack": s.logTrace
                 }
             }
         };

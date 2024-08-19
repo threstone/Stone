@@ -11,11 +11,15 @@
         "server_template": [
             {
                 "nodeId": "server_template1",
-                "autuResume": true
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
             },
             {
                 "nodeId": "server_template2",
-                "autuResume": true
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
             }
         ]
     }

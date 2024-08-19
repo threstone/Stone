@@ -24,7 +24,7 @@ class CommonServer {
                 res.end();
             });
         }).listen(port);
-        logger.info(`start common server successfully, port:${port}`);
+        logger.debug(`start common server successfully, port:${port}`);
     }
     doHandle(req, res, data) {
         if (req.url.startsWith('/list')) {

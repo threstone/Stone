@@ -1,14 +1,11 @@
 class LauncherOption implements ILauncherOption {
 
-    private _maxUser: number;
-    get maxUser() { return this._maxUser; }
-    set maxUser(value: number) { this._maxUser = parseInt(value as any); }
-
     nodeId: string;
     port: number
     env: string;
     serverType: string;
-    isTest: boolean;
+    autuResume: boolean;
+    logTrace: boolean;
 
     constructor() {
         const args = process.argv.splice(2);
@@ -19,6 +16,10 @@ class LauncherOption implements ILauncherOption {
             let value: string | number = kvInfo[1];
             this[key] = value;
         }
+        const anyThis = this as any;
+        this.autuResume = anyThis['autuResume'] === 'true';
+        this.logTrace = anyThis['logTrace'] === 'true';
+
         global.nodeId = this.nodeId;
         global.env = this.env;
     }

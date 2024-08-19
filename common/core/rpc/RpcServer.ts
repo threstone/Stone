@@ -15,7 +15,7 @@ class RpcServer {
     constructor(port = startupParam.port) {
         // todo 暂时先用ws把功能实现,实现后再修改传输层
         let wss = new WS.Server({ port });
-        logger.info(`[${process.pid}] rpc server start, port:${port}`)
+        logger.debug(`[${process.pid}] rpc server start, port:${port}`)
         wss.on("connection", (ws: WS, req) => {
             const session: RpcSession = { socket: ws, isInit: false }
             ws.on('message', this.handleMessage.bind(this, session));

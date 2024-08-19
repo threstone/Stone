@@ -14,11 +14,15 @@ declare var logger: ILog;
 //启动参数
 declare interface ILauncherOption {
     port: number
-    maxUser: number
     nodeId: string
     env: string,
     serverType: string
-    isTest: boolean
+    /** 异常重启,默认false */
+    autuResume?: boolean
+    /** 是否输出堆栈信息,默认false */
+    logTrace?: boolean
+    /** 输出级别,默认All */
+    logLevel?: string
 }
 
 declare interface ServerConfig {
@@ -26,10 +30,15 @@ declare interface ServerConfig {
     ip?: string
     port?: number
     env?: string
+    /** 异常重启,默认false */
     autuResume?: boolean
     serverType?: string
     isTest?: boolean
     rpcPorts?: number[]
+    /** 是否输出堆栈信息,默认false */
+    logTrace?: boolean
+    /** 输出级别,默认All */
+    logLevel?: string
 }
 
 //日志记录对象

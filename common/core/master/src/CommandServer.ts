@@ -21,7 +21,7 @@ export class CommonServer {
                 res.end();
             })
         }).listen(port);
-        logger.info(`start common server successfully, port:${port}`);
+        logger.debug(`start common server successfully, port:${port}`);
     }
 
     private doHandle(req: http.IncomingMessage, res: http.ServerResponse, data: object) {

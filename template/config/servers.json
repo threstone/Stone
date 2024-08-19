@@ -11,13 +11,15 @@
         "server_template": [
             {
                 "nodeId": "server_template1",
-                "ip": "127.0.0.1",
-                "autuResume": true
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
             },
             {
                 "nodeId": "server_template2",
-                "ip": "127.0.0.1",
-                "autuResume": true
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
             }
         ]
     }

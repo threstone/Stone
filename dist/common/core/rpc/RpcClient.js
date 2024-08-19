@@ -66,13 +66,13 @@ class RpcClient {
             this.isClose = false;
             // 第一条消息告知客户端信息
             this.send(serverConfig.serverType, serverConfig.nodeId, 'clientInfo', {}, []);
-            logger.info(`${serverConfig.nodeId}[${process.pid}] connect rpc server successfully`);
+            logger.debug(`${serverConfig.nodeId}[${process.pid}] connect rpc server successfully`);
             eventEmitter.emit(StoneDefine_1.StoneEvent.RpcServerConnected);
         });
         socket.on('message', this.handleMessage.bind(this));
         //断线重连
         socket.on("close", () => {
-            logger.log("rpc server close! ", this._port);
+            logger.debug("rpc server close! ", this._port);
             this.isClose = true;
         });
         //失败重连
