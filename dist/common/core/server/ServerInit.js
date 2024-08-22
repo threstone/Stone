@@ -22,7 +22,7 @@ class ServerInit {
     static initLogger() {
         const s = startupParam;
         const nodeId = (startupParam === null || startupParam === void 0 ? void 0 : startupParam.nodeId) || 'app';
-        const pattern = s.logTrace === true ? '[%f:%l:%o] [%d] [%p] [%c]' : '[%d] [%p] [%c]';
+        const pattern = s.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]';
         const loggerConfig = {
             "appenders": {
                 "console": {
@@ -37,7 +37,8 @@ class ServerInit {
                     "type": "dateFile",
                     "filename": `./logs/${nodeId}`,
                     "alwaysIncludePattern": true,
-                    "pattern": "yyyy-MM-dd.log",
+                    "pattern": "log",
+                    "maxLogSize": 1024 * 1024 * 100,
                     "layout": {
                         "type": "pattern",
                         "pattern": `${pattern} %m`
@@ -47,7 +48,8 @@ class ServerInit {
                     "type": "dateFile",
                     "filename": `./logs/err`,
                     "alwaysIncludePattern": true,
-                    "pattern": "yyyy-MM-dd.log",
+                    "pattern": "log",
+                    "maxLogSize": 1024 * 1024 * 100,
                     "layout": {
                         "type": "pattern",
                         "pattern": `${pattern} %m`
