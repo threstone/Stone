@@ -183,8 +183,8 @@ declare class rpc {
             rpcDeclare += '}\n';
             rpcDeclare += serverDeclare;
             rpcDeclare += remoteDeclare;
-            fs.writeFileSync(path.join(process.cwd(), '/app/RpcIndex.ts'), rpcDeclare);
-            fs.writeFileSync(path.join(process.cwd(), '/app/StoneIndex.ts'), fs.readFileSync(path.join(__dirname, '../../../../common/index.ts')));
+            fs.writeFileSync(path.join(process.cwd(), '/app/RpcIndex.d.ts'), rpcDeclare);
+            fs.writeFileSync(path.join(process.cwd(), '/app/StoneIndex.d.ts'), fs.readFileSync(path.join(__dirname, '../../../../common/index.d.ts')));
         }
         catch (error) {
             logger.error(`生成RPC描述文件失败`, error);
