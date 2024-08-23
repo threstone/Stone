@@ -13,6 +13,14 @@ class RpcManager {
         this.initRpcModule();
         this.initRpcClient();
     }
+    static stopRpcServer() {
+        if (startupParam.nodeId !== 'master') {
+            return;
+        }
+        this._serverWorker.forEach((rpcWorker) => {
+            rpcWorker.kill();
+        });
+    }
     /** 执行master任务 */
     static doMasterTask() {
         if (startupParam.nodeId !== 'master') {

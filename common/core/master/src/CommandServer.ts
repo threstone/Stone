@@ -1,5 +1,6 @@
 import * as http from 'http';
 import { GlobalVar } from './GlobalVar';
+import { RpcManager } from '../../rpc/RpcManager';
 
 export class CommonServer {
     constructor() {
@@ -35,7 +36,7 @@ export class CommonServer {
             this.restart(req, res, data);
         } else if (req.url.startsWith('/stopAll')) {
             this.stopAll(req, res, data);
-        }else{
+        } else {
             res.write('unknow request')
         }
     }
@@ -64,7 +65,8 @@ export class CommonServer {
         logger.info('process exit');
         GlobalVar.nodeMgr.serverMap.forEach((node) => {
             node.kill();
-        })
+        });
+        RpcManager.stopRpcServer();
         setTimeout(() => {
             process.exit();
         }, 500);

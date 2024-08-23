@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonServer = void 0;
 const http = require("http");
 const GlobalVar_1 = require("./GlobalVar");
+const RpcManager_1 = require("../../rpc/RpcManager");
 class CommonServer {
     constructor() {
         var _a;
@@ -68,6 +69,7 @@ class CommonServer {
         GlobalVar_1.GlobalVar.nodeMgr.serverMap.forEach((node) => {
             node.kill();
         });
+        RpcManager_1.RpcManager.stopRpcServer();
         setTimeout(() => {
             process.exit();
         }, 500);
