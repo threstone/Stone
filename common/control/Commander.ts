@@ -118,7 +118,7 @@ async function updaterpcdesc() {
     const rpcMgr = require(scriptPath);
     global.serversConfigMap = new Map();
     global.startupParam = {} as any;
-    serversConfigMap.set('master', { isTest: true });
+    serversConfigMap.set('master', { isCreateRpcDeclare: true });
     rpcMgr.RpcManager.initRpcDeclare()
     console.log('完成');
 }

@@ -3,8 +3,14 @@ import { ServersConfigMgr } from "./ServersConfigMgr";
 import { RpcManager } from "../rpc/RpcManager";
 import { EventEmitter } from 'events';
 import { configure, getLogger } from 'log4js';
+
+let exceptionLogger: ILog = console as any;
 export class ServerInit {
     static init() {
+        process.on('uncaughtException', (err) => {
+            exceptionLogger.error('Caught exception: err:', err);
+        });
+
         // 初始化启动参数
         global.startupParam = launcherOption;
         // 初始化全局事件对象
@@ -78,5 +84,6 @@ export class ServerInit {
         global.logger = getLogger(nodeId);
         const errLogger = getLogger(nodeId + ' error');
         logger.error = errLogger.error.bind(errLogger);
+        exceptionLogger = logger;
     }
 }

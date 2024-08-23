@@ -6,7 +6,7 @@
             "rpcPorts": [
                 995
             ],
-            "isTest": true
+            "isCreateRpcDeclare": true
         },
         "server_template": [
             {

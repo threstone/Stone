@@ -33,7 +33,7 @@ declare interface ServerConfig {
     /** 异常重启,默认false */
     autuResume?: boolean
     serverType?: string
-    isTest?: boolean
+    isCreateRpcDeclare?: boolean
     rpcPorts?: number[]
     /** 是否输出堆栈信息,默认false */
     logTrace?: boolean

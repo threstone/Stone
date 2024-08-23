@@ -6,8 +6,12 @@ const ServersConfigMgr_1 = require("./ServersConfigMgr");
 const RpcManager_1 = require("../rpc/RpcManager");
 const events_1 = require("events");
 const log4js_1 = require("log4js");
+let exceptionLogger = console;
 class ServerInit {
     static init() {
+        process.on('uncaughtException', (err) => {
+            exceptionLogger.error('Caught exception: err:', err);
+        });
         // 初始化启动参数
         global.startupParam = LauncherOption_1.launcherOption;
         // 初始化全局事件对象
@@ -80,6 +84,7 @@ class ServerInit {
         global.logger = (0, log4js_1.getLogger)(nodeId);
         const errLogger = (0, log4js_1.getLogger)(nodeId + ' error');
         logger.error = errLogger.error.bind(errLogger);
+        exceptionLogger = logger;
     }
 }
 exports.ServerInit = ServerInit;

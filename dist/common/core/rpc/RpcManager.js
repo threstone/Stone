@@ -144,7 +144,7 @@ class RpcManager {
     }
     /** 测试环境 生成并更新rpc类型描述文件 */
     static initRpcDeclare() {
-        if (serversConfigMap.get('master').isTest !== true) {
+        if (serversConfigMap.get('master').isCreateRpcDeclare !== true) {
             return;
         }
         let rpcDeclare = `
