@@ -51,28 +51,23 @@ function handleCmd() {
 
 /** 启动服务 */
 async function startall(environmentArgs) {
+    console.log('starting...');
     environment = environmentArgs || environment;
     const scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
     if (isBackgroud) {
-        if (os.platform() == 'win32') {
-            console.error('windows下暂时不支持后台启动');
-            return;
-        }
-        const cmd = `nohup node ${scriptPath} env=${environment} nodeId=master &`;
-        child_process.exec(cmd, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`执行命令时发生错误：${error}`);
-                return;
-            }
-
-            console.log(`stdout:\n${stdout}`);
-            console.error(`stderr:\n${stderr}`);
-        });
+        child_process.fork(scriptPath,
+            [`env=${environment}`, 'nodeId=master'],
+            { execArgv: ['-r', 'source-map-support/register'], detached: isBackgroud, stdio: 'ignore' }
+        );
         setTimeout(() => {
+            console.log('start successfully')
             process.exit();
-        }, 1500);
-    } else {
-        const worker = child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv: ['-r', 'source-map-support/register'] });
+        }, 1000);
+    }
+    else {
+        const worker = child_process.fork(scriptPath,
+            [`env=${environment}`, 'nodeId=master'],
+            { execArgv: ['-r', 'source-map-support/register'] });
         worker.on('exit', (code, signal) => {
             console.log(`exit code:${code}, signal:${signal}`);
         });
