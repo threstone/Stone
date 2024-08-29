@@ -1,3 +1,4 @@
+import * as ChildProcess from 'child_process';
 import { NodeWorker } from '../../woker/NodeWorker';
 export class NodeMgr {
     public serverMap: Map<string, NodeWorker>;
@@ -36,7 +37,11 @@ export class NodeMgr {
 
     private startNode(serverConf: ServerConfig) {
         const node = new NodeWorker(serverConf, this);
-        node.fork();
+        let options: ChildProcess.ForkOptions = {};
+        if (typeof serverConf.inspectPort === 'number') {
+            options.execArgv = [`--inspect=${serverConf.inspectPort}`]
+        }
+        node.fork(options);
     }
 
     public restart(nodeId: string) {

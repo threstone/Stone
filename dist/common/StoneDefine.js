@@ -7,11 +7,11 @@ var StoneEvent;
     StoneEvent["RpcServerConnected"] = "RpcServerConnected";
     /** servers配置更新 */
     StoneEvent["ServersConfigUpdate"] = "ServersConfigUpdate";
-})(StoneEvent = exports.StoneEvent || (exports.StoneEvent = {}));
+})(StoneEvent || (exports.StoneEvent = StoneEvent = {}));
 var RpcRouteType;
 (function (RpcRouteType) {
     RpcRouteType[RpcRouteType["Random"] = 0] = "Random";
     RpcRouteType[RpcRouteType["Target"] = 1] = "Target";
     RpcRouteType[RpcRouteType["All"] = 2] = "All";
-})(RpcRouteType = exports.RpcRouteType || (exports.RpcRouteType = {}));
+})(RpcRouteType || (exports.RpcRouteType = RpcRouteType = {}));
 //# sourceMappingURL=StoneDefine.js.map

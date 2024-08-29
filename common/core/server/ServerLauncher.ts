@@ -12,11 +12,11 @@ export class ServerLauncher {
         } else {
             try {
                 let mainPath = path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main.js`);
-                if (this.isFileExist(mainPath) === true) {
+                if (fs.existsSync(mainPath) === true) {
                     require(mainPath);
                 } else {
                     mainPath = path.join(process.cwd(), `app/servers/${startupParam.serverType}/src/bin/main.js`);
-                    if (this.isFileExist(mainPath) === true) {
+                    if (fs.existsSync(mainPath) === true) {
                         require(mainPath);
                     } else {
                         logger.warn('找不到入口文件:', mainPath.substring(0, mainPath.length - 3));
@@ -25,15 +25,6 @@ export class ServerLauncher {
             } catch (error) {
                 logger.error(`入口文件执行出错`, error);
             }
-        }
-    }
-
-    static isFileExist(filePath: string) {
-        try {
-            fs.statSync(filePath);
-            return true;
-        } catch (error) {
-            return false;
         }
     }
 }

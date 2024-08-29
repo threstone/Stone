@@ -6,16 +6,6 @@ const path = require("path");
 const RpcUtils_1 = require("./RpcUtils");
 const StoneDefine_1 = require("../../StoneDefine");
 class RpcClient {
-    constructor(ip, port) {
-        this._requestMap = new Map();
-        this._requestId = 1;
-        this.isClose = true;
-        this._ip = ip;
-        this._port = port;
-        setInterval(this.clearTimeOutReq.bind(this), 3000);
-        this.connectRpcServer();
-        this.setReconnectServer();
-    }
     static getRemoteObject(rpcMsg) {
         try {
             let remoteObject = this._remoteMap.get(rpcMsg.className);
@@ -35,6 +25,16 @@ class RpcClient {
         catch (error) {
             logger.error(`无法找到Remote,${JSON.stringify(rpcMsg)}`);
         }
+    }
+    constructor(ip, port) {
+        this._requestMap = new Map();
+        this._requestId = 1;
+        this.isClose = true;
+        this._ip = ip;
+        this._port = port;
+        setInterval(this.clearTimeOutReq.bind(this), 3000);
+        this.connectRpcServer();
+        this.setReconnectServer();
     }
     /** 清理过期请求 */
     clearTimeOutReq() {

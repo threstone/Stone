@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import * as os from 'os';
-import { promises as fs } from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as child_process from 'child_process';
 
@@ -51,13 +50,23 @@ function handleCmd() {
 
 /** 启动服务 */
 async function startall(environmentArgs) {
-    console.log('starting...');
+    console.log('starting...', environmentArgs);
     environment = environmentArgs || environment;
     const scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
+    const execArgv = ['-r', 'source-map-support/register'];
+
+    const serversPath = path.join(process.cwd(), './config/servers.json');
+    if (fs.existsSync(serversPath)) {
+        const serversConfig = require(path.join(process.cwd(), './config/servers.json'));
+        const masterConfig = serversConfig[environment].master;
+        if (typeof masterConfig.inspectPort === 'number') {
+            execArgv.push(`--inspect=${masterConfig.inspectPort}`)
+        }
+    }
     if (isBackgroud) {
         child_process.fork(scriptPath,
             [`env=${environment}`, 'nodeId=master'],
-            { execArgv: ['-r', 'source-map-support/register'], detached: isBackgroud, stdio: 'ignore' }
+            { execArgv, detached: isBackgroud, stdio: 'ignore' }
         );
         setTimeout(() => {
             console.log('start successfully')
@@ -67,7 +76,7 @@ async function startall(environmentArgs) {
     else {
         const worker = child_process.fork(scriptPath,
             [`env=${environment}`, 'nodeId=master'],
-            { execArgv: ['-r', 'source-map-support/register'] });
+            { execArgv });
         worker.on('exit', (code, signal) => {
             console.log(`exit code:${code}, signal:${signal}`);
         });
@@ -194,9 +203,9 @@ function init() {
 
 
 async function copyDir(src, dest) {
-    const entries = await fs.readdir(src, { withFileTypes: true });
+    const entries = await fs.promises.readdir(src, { withFileTypes: true });
 
-    await fs.mkdir(dest, { recursive: true });
+    await fs.promises.mkdir(dest, { recursive: true });
 
     for (let entry of entries) {
         const srcPath = path.join(src, entry.name);
@@ -205,7 +214,7 @@ async function copyDir(src, dest) {
         if (entry.isDirectory()) {
             await copyDir(srcPath, destPath);
         } else {
-            await fs.copyFile(srcPath, destPath);
+            await fs.promises.copyFile(srcPath, destPath);
         }
     }
 }

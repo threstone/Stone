@@ -33,7 +33,11 @@ class NodeMgr {
     }
     startNode(serverConf) {
         const node = new NodeWorker_1.NodeWorker(serverConf, this);
-        node.fork();
+        let options = {};
+        if (typeof serverConf.inspectPort === 'number') {
+            options.execArgv = [`--inspect=${serverConf.inspectPort}`];
+        }
+        node.fork(options);
     }
     restart(nodeId) {
         const node = this.serverMap.get(nodeId);

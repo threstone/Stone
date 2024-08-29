@@ -3,20 +3,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseWorker = void 0;
 const ChildProcess = require("child_process");
 class BaseWorker {
+    get pid() { var _a; return (_a = this.worker) === null || _a === void 0 ? void 0 : _a.pid; }
     constructor(execPath, serverConfig) {
         this.exitedAfterKill = false;
         this._execPath = execPath;
         this.serverConfig = serverConfig;
     }
-    get pid() { var _a; return (_a = this.worker) === null || _a === void 0 ? void 0 : _a.pid; }
     fork(options) {
         if (!this._execPath) {
             logger.error(`${this.serverConfig.nodeId} no execPath`);
             return;
         }
         this.exitedAfterKill = false;
-        this.startWorker();
         this._options = options || this._options;
+        this.startWorker();
     }
     kill() {
         try {

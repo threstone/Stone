@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = require("fs");
+const fs = require("fs");
 const path = require("path");
 const child_process = require("child_process");
 global.logger = console;
@@ -46,18 +46,27 @@ function handleCmd() {
 }
 /** 启动服务 */
 async function startall(environmentArgs) {
-    console.log('starting...');
+    console.log('starting...', environmentArgs);
     environment = environmentArgs || environment;
     const scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
+    const execArgv = ['-r', 'source-map-support/register'];
+    const serversPath = path.join(process.cwd(), './config/servers.json');
+    if (fs.existsSync(serversPath)) {
+        const serversConfig = require(path.join(process.cwd(), './config/servers.json'));
+        const masterConfig = serversConfig[environment].master;
+        if (typeof masterConfig.inspectPort === 'number') {
+            execArgv.push(`--inspect=${masterConfig.inspectPort}`);
+        }
+    }
     if (isBackgroud) {
-        child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv: ['-r', 'source-map-support/register'], detached: isBackgroud, stdio: 'ignore' });
+        child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv, detached: isBackgroud, stdio: 'ignore' });
         setTimeout(() => {
             console.log('start successfully');
             process.exit();
         }, 1000);
     }
     else {
-        const worker = child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv: ['-r', 'source-map-support/register'] });
+        const worker = child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv });
         worker.on('exit', (code, signal) => {
             console.log(`exit code:${code}, signal:${signal}`);
         });
@@ -167,8 +176,8 @@ function init() {
     copyDir(path.join(__dirname, '../../../template'), process.cwd());
 }
 async function copyDir(src, dest) {
-    const entries = await fs_1.promises.readdir(src, { withFileTypes: true });
-    await fs_1.promises.mkdir(dest, { recursive: true });
+    const entries = await fs.promises.readdir(src, { withFileTypes: true });
+    await fs.promises.mkdir(dest, { recursive: true });
     for (let entry of entries) {
         const srcPath = path.join(src, entry.name);
         const destPath = path.join(dest, entry.name);
@@ -176,7 +185,7 @@ async function copyDir(src, dest) {
             await copyDir(srcPath, destPath);
         }
         else {
-            await fs_1.promises.copyFile(srcPath, destPath);
+            await fs.promises.copyFile(srcPath, destPath);
         }
     }
 }

@@ -21,8 +21,8 @@ export class BaseWorker {
             return;
         }
         this.exitedAfterKill = false;
-        this.startWorker();
         this._options = options || this._options;
+        this.startWorker();
     }
 
     kill() {
