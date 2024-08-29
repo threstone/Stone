@@ -13,13 +13,15 @@
                 "nodeId": "server_template1",
                 "autuResume": true,
                 "logTrace": true,
-                "logLevel": "ALL"
+                "logLevel": "ALL",
+                "inspectPort": 9221
             },
             {
                 "nodeId": "server_template2",
                 "autuResume": true,
                 "logTrace": true,
-                "logLevel": "ALL"
+                "logLevel": "ALL",
+                "inspectPort": 9222
             }
         ]
     }

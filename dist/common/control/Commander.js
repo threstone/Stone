@@ -50,14 +50,6 @@ async function startall(environmentArgs) {
     environment = environmentArgs || environment;
     const scriptPath = path.join(__dirname, '../core/server/ServerLauncher.js');
     const execArgv = ['-r', 'source-map-support/register'];
-    const serversPath = path.join(process.cwd(), './config/servers.json');
-    if (fs.existsSync(serversPath)) {
-        const serversConfig = require(path.join(process.cwd(), './config/servers.json'));
-        const masterConfig = serversConfig[environment].master;
-        if (typeof masterConfig.inspectPort === 'number') {
-            execArgv.push(`--inspect=${masterConfig.inspectPort}`);
-        }
-    }
     if (isBackgroud) {
         child_process.fork(scriptPath, [`env=${environment}`, 'nodeId=master'], { execArgv, detached: isBackgroud, stdio: 'ignore' });
         setTimeout(() => {
