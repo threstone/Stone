@@ -1,5 +1,6 @@
 import * as ChildProcess from 'child_process';
-export class BaseWorker {
+import EventEmitter = require('events');
+export class BaseWorker extends EventEmitter {
 
     protected _execPath: string;
     private _options: ChildProcess.ForkOptions;
@@ -11,6 +12,7 @@ export class BaseWorker {
     get pid() { return this.worker?.pid }
 
     constructor(execPath: string, serverConfig: ServerConfig) {
+        super();
         this._execPath = execPath;
         this.serverConfig = serverConfig;
     }
@@ -62,6 +64,13 @@ export class BaseWorker {
 
     onMessage(message: any) {
         logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${message}`);
+        if (message.event) {
+            this.emit(message.event, message.data);
+        }
+    }
+
+    sendMessage(message: any) {
+        this.worker.send(message);
     }
 
     protected startWorker() {

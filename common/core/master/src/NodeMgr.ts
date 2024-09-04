@@ -7,13 +7,50 @@ export class NodeMgr {
         this.serverMap = new Map<string, NodeWorker>();
     }
 
-    public getServerInfo() {
-        const list: ServerConfig[] = [];
-        this.serverMap.forEach((node) => {
-            const config: any = { "pid": node.pid, ...node.serverConfig };
-            list.push(config);
-        })
-        return list;
+    public async getServerInfo() {
+        let result = `${'nodeId'.padEnd(20, ' ')}`
+            + `${'pid'.padEnd(10, ' ')}`
+            + `${'serverType'.padEnd(20, ' ')}`
+            + `${'rss'.padEnd(10, ' ')}`
+            + `${'heapTotal'.padEnd(12, ' ')}`
+            + `${'heapUsed'.padEnd(10, ' ')}`
+            + '\n';
+        const tasks = [];
+        this.serverMap.forEach(async (node) => {
+            tasks.push(this.getChildMemoryUsage(node).then((data: NodeJS.MemoryUsage) => {
+                if (!data) {
+                    return;
+                }
+                result += `${node.serverConfig.nodeId.padEnd(20, ' ')}`
+                result += `${node.pid.toString().padEnd(10, ' ')}`
+                result += `${node.serverConfig.serverType.padEnd(20, ' ')}`;
+                result += `${this.formatMemory(data.rss).padEnd(10, ' ')}`
+                result += `${this.formatMemory(data.heapTotal).padEnd(12, ' ')}`
+                result += `${this.formatMemory(data.heapUsed).padEnd(10, ' ')}`
+                result += ' \n';
+            }));
+        });
+        await Promise.all(tasks);
+        return result;
+    }
+
+    private formatMemory(bytes: number) {
+        return (bytes / 1024 / 1024).toFixed(2);
+    }
+
+    private getChildMemoryUsage(node: NodeWorker) {
+        return Promise.race([
+            new Promise((resolve) => {
+                node.sendMessage('getMemoryUsage');
+                node.once('getMemoryUsage', (data: NodeJS.MemoryUsage) => {
+                    resolve(data);
+                });
+            }),
+            new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, 5000);
+            })])
     }
 
     public startServer(nodeId: string) {

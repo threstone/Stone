@@ -2,9 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseWorker = void 0;
 const ChildProcess = require("child_process");
-class BaseWorker {
+const EventEmitter = require("events");
+class BaseWorker extends EventEmitter {
     get pid() { var _a; return (_a = this.worker) === null || _a === void 0 ? void 0 : _a.pid; }
     constructor(execPath, serverConfig) {
+        super();
         this.exitedAfterKill = false;
         this._execPath = execPath;
         this.serverConfig = serverConfig;
@@ -52,6 +54,12 @@ class BaseWorker {
     }
     onMessage(message) {
         logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${message}`);
+        if (message.event) {
+            this.emit(message.event, message.data);
+        }
+    }
+    sendMessage(message) {
+        this.worker.send(message);
     }
     startWorker() {
         const args = [];

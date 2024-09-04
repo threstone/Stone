@@ -8,28 +8,28 @@ class CommonServer {
     constructor() {
         var _a;
         const port = ((_a = serversConfigMap.get('master')) === null || _a === void 0 ? void 0 : _a.port) || 1000;
-        http.createServer((req, res) => {
+        this._httpServer = http.createServer((req, res) => {
             let datas;
             req.on('data', (d) => {
                 !datas && (datas = '');
                 datas += d;
             });
-            req.on('end', () => {
+            req.on('end', async () => {
                 let body;
                 try {
                     body = datas && JSON.parse(datas);
                 }
                 catch (error) {
                 }
-                this.doHandle(req, res, body);
+                await this.doHandle(req, res, body);
                 res.end();
             });
         }).listen(port);
         logger.debug(`start common server successfully, port:${port}`);
     }
-    doHandle(req, res, data) {
+    async doHandle(req, res, data) {
         if (req.url.startsWith('/list')) {
-            this.list(req, res, data);
+            await this.list(req, res, data);
         }
         else if (req.url.startsWith('/kill')) {
             this.kill(req, res, data);
@@ -47,8 +47,9 @@ class CommonServer {
             res.write('unknow request');
         }
     }
-    list(req, res, data) {
-        res.write(JSON.stringify(GlobalVar_1.GlobalVar.nodeMgr.getServerInfo()));
+    async list(req, res, data) {
+        const result = await GlobalVar_1.GlobalVar.nodeMgr.getServerInfo();
+        res.write(result);
     }
     kill(req, res, data) {
         var _a;
@@ -70,6 +71,7 @@ class CommonServer {
             node.kill();
         });
         RpcManager_1.RpcManager.stopRpcServer();
+        this._httpServer.close();
         setTimeout(() => {
             process.exit();
         }, 500);
