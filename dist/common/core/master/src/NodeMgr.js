@@ -7,29 +7,55 @@ class NodeMgr {
         this.serverMap = new Map();
     }
     async getServerInfo() {
-        let result = `${'nodeId'.padEnd(20, ' ')}`
-            + `${'pid'.padEnd(10, ' ')}`
-            + `${'serverType'.padEnd(20, ' ')}`
-            + `${'rss'.padEnd(10, ' ')}`
-            + `${'heapTotal'.padEnd(12, ' ')}`
-            + `${'heapUsed'.padEnd(10, ' ')}`
-            + '\n';
+        const maxLens = {
+            ['pid']: 'pid'.length + 2,
+            ['nodeId']: 'nodeId'.length + 2,
+            ['serverType']: 'serverType'.length + 2,
+            ['rss']: 'rss'.length + 2,
+            ['heapTotal']: 'heapTotal'.length + 2,
+            ['heapUsed']: 'heapUsed'.length + 2,
+            ['runTime']: 'runTime'.length + 2,
+        };
+        const datas = {};
         const tasks = [];
         this.serverMap.forEach(async (node) => {
             tasks.push(this.getChildMemoryUsage(node).then((data) => {
                 if (!data) {
                     return;
                 }
-                result += `${node.serverConfig.nodeId.padEnd(20, ' ')}`;
-                result += `${node.pid.toString().padEnd(10, ' ')}`;
-                result += `${node.serverConfig.serverType.padEnd(20, ' ')}`;
-                result += `${this.formatMemory(data.rss).padEnd(10, ' ')}`;
-                result += `${this.formatMemory(data.heapTotal).padEnd(12, ' ')}`;
-                result += `${this.formatMemory(data.heapUsed).padEnd(10, ' ')}`;
-                result += ' \n';
+                if (!datas[node.serverConfig.serverType]) {
+                    datas[node.serverConfig.serverType] = [];
+                }
+                const childData = {
+                    pid: node.pid.toString(),
+                    nodeId: node.serverConfig.nodeId,
+                    serverType: node.serverConfig.serverType,
+                    rss: this.formatMemory(data.memoryUsage.rss),
+                    heapTotal: this.formatMemory(data.memoryUsage.heapTotal),
+                    heapUsed: this.formatMemory(data.memoryUsage.heapUsed),
+                    runTime: (data.uptime / 60).toFixed(2)
+                };
+                Object.keys(childData).forEach((key) => {
+                    maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
+                });
+                datas[node.serverConfig.serverType].push(childData);
             }));
         });
         await Promise.all(tasks);
+        let result = '';
+        const keys = Object.keys(maxLens);
+        keys.forEach((key) => {
+            result += `${key.padEnd(maxLens[key], ' ')}`;
+        });
+        Object.keys(datas).forEach((serverType) => {
+            const list = datas[serverType];
+            list.forEach((childData) => {
+                result += '\n';
+                keys.forEach((key) => {
+                    result += `${childData[key].padEnd(maxLens[key], ' ')}`;
+                });
+            });
+        });
         return result;
     }
     formatMemory(bytes) {
@@ -38,8 +64,8 @@ class NodeMgr {
     getChildMemoryUsage(node) {
         return Promise.race([
             new Promise((resolve) => {
-                node.sendMessage('getMemoryUsage');
-                node.once('getMemoryUsage', (data) => {
+                node.sendMessage('getChildInfo');
+                node.once('getChildInfo', (data) => {
                     resolve(data);
                 });
             }),

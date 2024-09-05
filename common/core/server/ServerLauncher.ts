@@ -12,9 +12,9 @@ export class ServerLauncher {
         } else {
             try {
                 process.on('message', (message) => {
-                    if (message === 'getMemoryUsage') {
+                    if (message === 'getChildInfo') {
                         const memoryUsage = process.memoryUsage();
-                        process.send({ event: 'getMemoryUsage', data: memoryUsage });
+                        process.send({ event: 'getChildInfo', data: { memoryUsage, uptime: process.uptime() } });
                     }
                 });
 
