@@ -33,7 +33,7 @@ function handleCmd() {
             args.splice(index, 1);
         }
     }
-    const cmdList = ['startall', 'stopall', 'list', 'kill', 'start', 'restart', 'updaterpcdesc', 'init'];
+    const cmdList = ['startall', 'stopall', 'list', 'kill', 'start', 'restart', 'restartall', 'updaterpcdesc', 'init'];
     const argv = args.shift().toLowerCase();
     const index = cmdList.indexOf(argv);
     if (index !== -1) {
@@ -92,6 +92,11 @@ function start(nodeId) {
 function restart(nodeId) {
     sendCMD('restart', JSON.stringify({ nodeId: nodeId }));
 }
+/** 重新启动所有进程 */
+function restartall(environmentArgs) {
+    environment = environmentArgs || environment;
+    sendCMD('restartAll');
+}
 /** 生成并更新rpc类型描述文件 */
 async function updaterpcdesc() {
     let scriptPath = path.join(__dirname, '../core/rpc/RpcManager.js');
@@ -120,6 +125,7 @@ Commands:
     stone kill [nodeId]            杀死指定进程                             eg: stone -e dev kill Hall1
     stone start [nodeId]           启动指定进程                             eg: stone -e dev start Hall1
     stone restart [nodeId]         重新启动指定进程                         eg: stone -e dev restart Hall1
+    stone restartAll [environment] 重新启动所有进程                         eg: stone -e dev restartAll Hall1
     stone updateRpcDesc            生成并更新rpc类型描述文件                eg: stone updateRpcDesc
         `);
 }

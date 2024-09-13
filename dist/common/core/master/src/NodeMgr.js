@@ -109,6 +109,15 @@ class NodeMgr {
         }
         node.restart(serverConfig);
     }
+    restartAll() {
+        this.serverMap.forEach((node, nodeId) => {
+            const serverConfig = serversConfigMap.get(nodeId);
+            if (!serverConfig) {
+                return;
+            }
+            node.restart(serverConfig);
+        });
+    }
 }
 exports.NodeMgr = NodeMgr;
 //# sourceMappingURL=NodeMgr.js.map

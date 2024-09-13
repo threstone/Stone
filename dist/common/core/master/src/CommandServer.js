@@ -37,11 +37,14 @@ class CommonServer {
         else if (req.url.startsWith('/start')) {
             this.start(req, res, data);
         }
-        else if (req.url.startsWith('/restart')) {
-            this.restart(req, res, data);
+        else if (req.url.startsWith('/restartAll')) {
+            this.restartAll(req, res, data);
         }
         else if (req.url.startsWith('/stopAll')) {
             this.stopAll(req, res, data);
+        }
+        else if (req.url.startsWith('/restart')) {
+            this.restart(req, res, data);
         }
         else {
             res.write('unknow request');
@@ -62,6 +65,10 @@ class CommonServer {
     }
     restart(req, res, data) {
         GlobalVar_1.GlobalVar.nodeMgr.restart(data.nodeId);
+        res.statusCode = 200;
+    }
+    restartAll(req, res, data) {
+        GlobalVar_1.GlobalVar.nodeMgr.restartAll();
         res.statusCode = 200;
     }
     stopAll(req, res, data) {
