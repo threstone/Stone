@@ -35,7 +35,8 @@ class RpcManager {
         }
         const len = this._clients.length;
         for (let index = 0; index < len; index++) {
-            const c = this._clients[(this._index + index) % len];
+            const clientIndex = (++this._index) % len;
+            const c = this._clients[clientIndex];
             if (c.isClose === false) {
                 return c;
             }
@@ -244,6 +245,9 @@ declare class rpc {
         catch (error) {
             return false;
         }
+    }
+    static getRpcWorker() {
+        return this._serverWorker;
     }
 }
 exports.RpcManager = RpcManager;

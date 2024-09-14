@@ -1,5 +1,7 @@
 import * as ChildProcess from 'child_process';
 import { NodeWorker } from '../../woker/NodeWorker';
+import { RpcManager } from '../../rpc/RpcManager';
+import { BaseWorker } from '../../woker/BaseWorker';
 export class NodeMgr {
     public serverMap: Map<string, NodeWorker>;
 
@@ -29,38 +31,38 @@ export class NodeMgr {
             }[]
         } = {};
         const tasks = [];
-        this.serverMap.forEach(async (node) => {
-            tasks.push(this.getChildMemoryUsage(node).then((data: { memoryUsage: NodeJS.MemoryUsage, uptime: number }) => {
-                if (!data) {
-                    return;
-                }
-                if (!datas[node.serverConfig.serverType]) {
-                    datas[node.serverConfig.serverType] = [];
-                }
-                const childData = {
-                    pid: node.pid.toString(),
-                    nodeId: node.serverConfig.nodeId,
-                    serverType: node.serverConfig.serverType,
-                    rss: this.formatMemory(data.memoryUsage.rss),
-                    heapTotal: this.formatMemory(data.memoryUsage.heapTotal),
-                    heapUsed: this.formatMemory(data.memoryUsage.heapUsed),
-                    runTime: (data.uptime / 60).toFixed(2)
-                };
-                Object.keys(childData).forEach((key) => {
-                    maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
-                });
-                datas[node.serverConfig.serverType].push(childData);
-            }));
+        const memoryUsage = process.memoryUsage();
+        const masterData = {
+            pid: process.pid.toString(),
+            nodeId: 'master',
+            serverType: 'master',
+            rss: this.formatMemory(memoryUsage.rss),
+            heapTotal: this.formatMemory(memoryUsage.heapTotal),
+            heapUsed: this.formatMemory(memoryUsage.heapUsed),
+            runTime: (process.uptime() / 60).toFixed(2)
+        };
+        Object.keys(masterData).forEach((key) => {
+            maxLens[key] = Math.max(masterData[key].length + 2, maxLens[key]);
+        });
+        datas['master'] = [masterData];
+        this.serverMap.forEach((node) => {
+            tasks.push(this.getWokerMessage(node, maxLens, datas));
+        });
+        RpcManager.getRpcWorker().forEach((node) => {
+            tasks.push(this.getWokerMessage(node, maxLens, datas));
         });
         await Promise.all(tasks);
 
+        // 将数据组织成表格显示
         let result = '';
         const keys = Object.keys(maxLens);
         keys.forEach((key) => {
             result += `${key.padEnd(maxLens[key], ' ')}`;
         });
-        Object.keys(datas).forEach((serverType) => {
+        Object.keys(datas).sort((a, b) => { return this.getWeight(a) > this.getWeight(b) ? 1 : -1 }).forEach((serverType) => {
             const list = datas[serverType];
+            // 根据pid sort一下
+            list.sort((a, b) => { return this.getWeight(a.nodeId) > this.getWeight(b.nodeId) ? 1 : -1; })
             list.forEach((childData) => {
                 result += '\n';
                 keys.forEach((key) => {
@@ -69,25 +71,6 @@ export class NodeMgr {
             });
         });
         return result;
-    }
-
-    private formatMemory(bytes: number) {
-        return (bytes / 1024 / 1024).toFixed(2);
-    }
-
-    private getChildMemoryUsage(node: NodeWorker) {
-        return Promise.race([
-            new Promise((resolve) => {
-                node.sendMessage('getChildInfo');
-                node.once('getChildInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number }) => {
-                    resolve(data);
-                });
-            }),
-            new Promise<void>((resolve) => {
-                setTimeout(() => {
-                    resolve();
-                }, 5000);
-            })])
     }
 
     public startServer(nodeId: string) {
@@ -135,6 +118,57 @@ export class NodeMgr {
             }
             node.restart(serverConfig);
         })
+    }
+
+    private async getWokerMessage(node: BaseWorker, maxLens: {}, datas: {}) {
+        const info = await this.getWorkerInfo(node) as { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number };
+        const childData = {
+            pid: node.pid.toString(),
+            nodeId: node.serverConfig.nodeId,
+            serverType: node.serverConfig.serverType,
+            rss: this.formatMemory(info.memoryUsage.rss),
+            heapTotal: this.formatMemory(info.memoryUsage.heapTotal),
+            heapUsed: this.formatMemory(info.memoryUsage.heapUsed),
+            runTime: (info.uptime / 60).toFixed(2)
+        };
+        Object.keys(childData).forEach((key) => {
+            maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
+        });
+        if (datas[node.serverConfig.serverType] == null) {
+            datas[node.serverConfig.serverType] = [];
+        }
+        datas[node.serverConfig.serverType].push(childData);
+    }
+
+    private getWorkerInfo(node: BaseWorker) {
+        return Promise.race([
+            new Promise((resolve) => {
+                node.sendMessage('getChildInfo');
+                node.once('getChildInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
+                    data.pid = node.pid;
+                    resolve(data);
+                });
+            }),
+            new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, 5000);
+            })])
+    }
+
+    private getWeight(name: string) {
+        if (name === 'master') {
+            return Number.MIN_SAFE_INTEGER;
+        }
+        let result = 0;
+        for (let index = 0; index < name.length; index++) {
+            result += name.charCodeAt(index)
+        }
+        return result;
+    }
+
+    private formatMemory(bytes: number) {
+        return (bytes / 1024 / 1024).toFixed(2);
     }
 }
 

@@ -15,12 +15,6 @@ class ServerLauncher {
         }
         else {
             try {
-                process.on('message', (message) => {
-                    if (message === 'getChildInfo') {
-                        const memoryUsage = process.memoryUsage();
-                        process.send({ event: 'getChildInfo', data: { memoryUsage, uptime: process.uptime() } });
-                    }
-                });
                 let mainPath = path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main.js`);
                 if (fs.existsSync(mainPath) === true) {
                     require(mainPath);

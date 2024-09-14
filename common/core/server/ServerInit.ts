@@ -11,14 +11,21 @@ export class ServerInit {
             exceptionLogger.error('Caught exception: err:', err);
         });
 
+        process.on('message', (message) => {
+            if (message === 'getChildInfo') {
+                const memoryUsage = process.memoryUsage();
+                process.send({ event: 'getChildInfo', data: { memoryUsage, uptime: process.uptime() } });
+            }
+        });
+
         // 初始化启动参数
         global.startupParam = launcherOption;
         // 初始化全局事件对象
         global.eventEmitter = new EventEmitter();
-        // 初始化service config manager
-        ServersConfigMgr.init();
         // 日志初始化
         ServerInit.initLogger();
+        // 初始化service config manager
+        ServersConfigMgr.init();
         // RPC模块初始化
         RpcManager.init();
     }

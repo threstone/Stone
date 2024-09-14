@@ -13,6 +13,13 @@ var RpcMessageType;
  * https://www.npmjs.com/package/json-stringify-safe
  */
 class RpcUtilsByJson {
+    static getRandIndex() {
+        this._randIndex++;
+        if (this._randIndex >= Number.MAX_SAFE_INTEGER) {
+            this._randIndex = 1;
+        }
+        return this._randIndex;
+    }
     /** 转发rpc信息 */
     static transferMessage(jsonStr, serverMapList, nodeIdMap) {
         var _a;
@@ -21,10 +28,7 @@ class RpcUtilsByJson {
             case RpcMessageType.call:
             case RpcMessageType.send:
                 // 转发
-                const clients = RpcUtilsByJson.getRouteClient(reqMsg, serverMapList, nodeIdMap);
-                clients === null || clients === void 0 ? void 0 : clients.forEach((c) => {
-                    c.socket.send(jsonStr);
-                });
+                RpcUtilsByJson.sendToClients(jsonStr, reqMsg, serverMapList, nodeIdMap);
                 break;
             case RpcMessageType.result:
                 (_a = nodeIdMap.get(reqMsg.fromNodeId)) === null || _a === void 0 ? void 0 : _a.socket.send(jsonStr);
@@ -83,21 +87,20 @@ class RpcUtilsByJson {
     static encodeResult(replay) {
         return JSON.stringify(replay);
     }
-    /** 获取转发的clients */
-    static getRouteClient(reqMsg, serverMapList, nodeIdMap) {
+    /** 发送消息到客户端 */
+    static sendToClients(jsonStr, reqMsg, serverMapList, nodeIdMap) {
+        var _a, _b, _c;
         if (reqMsg.routeOptions.type === StoneDefine_1.RpcRouteType.Target /* target */) {
-            const result = nodeIdMap.get(reqMsg.routeOptions.nodeId);
-            if ((result === null || result === void 0 ? void 0 : result.serverType) !== reqMsg.serverName) {
-                return [];
-            }
-            return [result];
+            (_a = nodeIdMap.get(reqMsg.routeOptions.nodeId)) === null || _a === void 0 ? void 0 : _a.socket.send(jsonStr);
         }
         else if (reqMsg.routeOptions.type === StoneDefine_1.RpcRouteType.All /* all */) {
-            return serverMapList.get(reqMsg.serverName);
+            (_b = serverMapList.get(reqMsg.serverName)) === null || _b === void 0 ? void 0 : _b.forEach((c) => {
+                c.socket.send(jsonStr);
+            });
         }
         else { /* random */
             const nodeList = serverMapList.get(reqMsg.serverName);
-            return [nodeList[(this._randIndex++) % nodeList.length]];
+            (_c = nodeList[(this.getRandIndex()) % nodeList.length]) === null || _c === void 0 ? void 0 : _c.socket.send(jsonStr);
         }
     }
 }
