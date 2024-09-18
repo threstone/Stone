@@ -6,7 +6,9 @@
             "rpcPorts": [
                 995
             ],
-            "isTest": true
+            "rpcBulkSize": 500,
+            "rpcBulkTime": 10,
+            "isCreateRpcDeclare": true
         },
         "server_template": [
             {

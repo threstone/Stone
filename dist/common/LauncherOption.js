@@ -14,6 +14,12 @@ class LauncherOption {
         const anyThis = this;
         this.autuResume = anyThis['autuResume'] === 'true';
         this.logTrace = anyThis['logTrace'] === 'true';
+        if (this.rpcBulkSize) {
+            this.rpcBulkSize = parseInt(this.rpcBulkSize, 10);
+        }
+        if (this.rpcBulkTime) {
+            this.rpcBulkTime = parseInt(this.rpcBulkTime, 10);
+        }
         global.nodeId = this.nodeId;
         global.env = this.env;
     }

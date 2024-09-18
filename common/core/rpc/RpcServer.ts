@@ -1,6 +1,13 @@
 import * as WS from "ws"
 import { RpcUtils } from "./RpcUtils";
-
+import { RpcSession } from "./RpcSession";
+// let count = 0;
+// let lastCalcTime = Date.now();
+// setInterval(() => {
+//     logger.info(`平均消息处理速度:${Math.ceil(count / ((Date.now() - lastCalcTime) / 1000))}条/秒`);
+//     count = 0;
+//     lastCalcTime = Date.now();
+// }, 1000);
 class RpcServer {
 
     private _serverMapList = new Map<string, RpcSession[]>();
@@ -17,7 +24,8 @@ class RpcServer {
         let wss = new WS.Server({ port });
         logger.debug(`[${process.pid}] rpc server start, port:${port}`)
         wss.on("connection", (ws: WS, req) => {
-            const session: RpcSession = { socket: ws, isInit: false }
+            // const session: RpcSession = { socket: ws, isInit: false }
+            const session = new RpcSession(ws);
             ws.on('message', this.handleMessage.bind(this, session));
 
             ws.on("error", (err: Error) => {
@@ -48,9 +56,11 @@ class RpcServer {
         }, 3000);
     }
 
-    private handleMessage(session: RpcSession, msg: Buffer | string) {
+    private handleMessage(session: RpcSession, buffer: Buffer) {
+        const msg = buffer.toString();
+        // count++;
         if (session.isInit === false) {
-            const rpcMsg = RpcUtils.decodeRpcMsg(msg as any) as RpcReqMsg;
+            const rpcMsg = RpcUtils.decodeRpcMsg(msg) as RpcReqMsg;
             session.isInit = true;
             session.serverType = rpcMsg.serverName;
             session.nodeId = rpcMsg.className;
@@ -66,20 +76,15 @@ class RpcServer {
         }
 
         if (this._isHandleMsg) {
-            RpcUtils.transferMessage(msg as any, this._serverMapList, this._nodeIdMap);
+            RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
         } else {
             eventEmitter.once('RpcServerHandleStart', () => {
-                RpcUtils.transferMessage(msg as any, this._serverMapList, this._nodeIdMap);
+                RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
             });
         }
     }
 }
 
-export interface RpcSession {
-    socket: WS;
-    isInit: boolean;
-    serverType?: string;
-    nodeId?: string;
-}
-
 export const server = new RpcServer();
+
+export { RpcSession };

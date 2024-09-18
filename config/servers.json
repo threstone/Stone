@@ -4,24 +4,50 @@
             "ip": "127.0.0.1",
             "port": 999,
             "rpcPorts": [
-                995
+                995,996
             ],
+            "rpcBulkSize": 500,
+            "rpcBulkTime": 10,
             "isCreateRpcDeclare": true
         },
-        "server_template": [
+        "handler": [
             {
-                "nodeId": "server_template1",
+                "nodeId": "handler1",
                 "autuResume": true,
                 "logTrace": true,
-                "logLevel": "ALL",
-                "inspectPort": 9221
+                "logLevel": "ALL"
             },
             {
-                "nodeId": "server_template2",
+                "nodeId": "handler2",
                 "autuResume": true,
                 "logTrace": true,
-                "logLevel": "ALL",
-                "inspectPort": 9222
+                "logLevel": "ALL"
+            }
+        ],
+        "sender": [
+            {
+                "nodeId": "sender1",
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
+            },
+            {
+                "nodeId": "sender2",
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
+            },
+            {
+                "nodeId": "sender3",
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
+            },
+            {
+                "nodeId": "sender4",
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
             }
         ]
     }

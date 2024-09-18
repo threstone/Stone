@@ -66,7 +66,9 @@ export class RpcManager {
                 port: port,
                 autuResume: true,
                 serverType: 'RPC',
-                env
+                env,
+                rpcBulkSize: serverConfig.rpcBulkSize ?? 500,
+                rpcBulkTime: serverConfig.rpcBulkTime ?? 10,
             });
             this._serverWorker.push(worker);
             worker.fork();
@@ -83,7 +85,7 @@ export class RpcManager {
         const rpcPorts = config.rpcPorts;
         if (rpcPorts) {
             rpcPorts.forEach((port) => {
-                this._clients.push(new RpcClient(config.ip, port));
+                this._clients.push(new RpcClient(config.ip, port, config.rpcBulkTime !== 0));
             });
         } else {
             process.nextTick(() => {

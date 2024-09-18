@@ -26,12 +26,13 @@ class RpcClient {
             logger.error(`无法找到Remote,${JSON.stringify(rpcMsg)}`);
         }
     }
-    constructor(ip, port) {
+    constructor(ip, port, bulk) {
         this._requestMap = new Map();
         this._requestId = 1;
         this.isClose = true;
         this._ip = ip;
         this._port = port;
+        this._bulk = bulk;
         setInterval(this.clearTimeOutReq.bind(this), 3000);
         this.connectRpcServer();
         this.setReconnectServer();
@@ -42,8 +43,8 @@ class RpcClient {
         this._requestMap.forEach((req, requestId, map) => {
             if (req.sendTime + 15000 < now) {
                 logger.error(`reqest time out :${req.reqInfo}`);
-                req.reject();
                 map.delete(requestId);
+                req.reject();
             }
         });
     }
@@ -69,7 +70,7 @@ class RpcClient {
             logger.debug(`${serverConfig.nodeId}[${process.pid}] connect rpc server successfully`);
             eventEmitter.emit(StoneDefine_1.StoneEvent.RpcServerConnected);
         });
-        socket.on('message', this.handleMessage.bind(this));
+        socket.on('message', this.onMessage.bind(this));
         //断线重连
         socket.on("close", () => {
             logger.debug("rpc server close! ", this._port);
@@ -81,9 +82,20 @@ class RpcClient {
             this.isClose = true;
         });
     }
-    handleMessage(msg) {
+    onMessage(msg) {
+        if (this._bulk) {
+            const msgs = JSON.parse(msg);
+            msgs.forEach((tempMsg) => {
+                this.handleMessage(tempMsg);
+            });
+        }
+        else {
+            this.handleMessage(msg);
+        }
+    }
+    handleMessage(message) {
         // 客户端收到 call  send  result
-        const rpcMsg = RpcUtils_1.RpcUtils.decodeRpcMsg(msg);
+        const rpcMsg = RpcUtils_1.RpcUtils.decodeRpcMsg(message);
         switch (rpcMsg.type) {
             case RpcUtils_1.RpcMessageType.call:
                 return this.handleCall(rpcMsg);
@@ -98,8 +110,8 @@ class RpcClient {
         const requestCache = this._requestMap.get(rpcResult.requestId);
         if (!requestCache)
             return;
-        requestCache.resolve(rpcResult.result);
         this._requestMap.delete(rpcResult.requestId);
+        requestCache.resolve(rpcResult.result);
     }
     async handleCall(rpcMsg) {
         const remote = RpcClient.getRemoteObject(rpcMsg);

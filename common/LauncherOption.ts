@@ -6,6 +6,8 @@ class LauncherOption implements ILauncherOption {
     serverType: string;
     autuResume: boolean;
     logTrace: boolean;
+    rpcBulkSize?: number;
+    rpcBulkTime?: number;
 
     constructor() {
         const args = process.argv.splice(2);
@@ -20,6 +22,9 @@ class LauncherOption implements ILauncherOption {
         this.autuResume = anyThis['autuResume'] === 'true';
         this.logTrace = anyThis['logTrace'] === 'true';
 
+        if (this.rpcBulkSize) { this.rpcBulkSize = parseInt(this.rpcBulkSize as any, 10) }
+        if (this.rpcBulkTime) { this.rpcBulkTime = parseInt(this.rpcBulkTime as any, 10) }
+        
         global.nodeId = this.nodeId;
         global.env = this.env;
     }

@@ -35,10 +35,12 @@ export class RpcClient {
     public isClose: boolean = true;
     private _ip: string;
     private _port: number;
+    private _bulk: boolean;
 
-    constructor(ip: string, port: number) {
+    constructor(ip: string, port: number, bulk: boolean) {
         this._ip = ip;
         this._port = port;
+        this._bulk = bulk;
         setInterval(this.clearTimeOutReq.bind(this), 3000);
         this.connectRpcServer();
         this.setReconnectServer();
@@ -50,8 +52,8 @@ export class RpcClient {
         this._requestMap.forEach((req, requestId, map) => {
             if (req.sendTime + 15000 < now) {
                 logger.error(`reqest time out :${req.reqInfo}`)
-                req.reject();
                 map.delete(requestId);
+                req.reject();
             }
         })
     }
@@ -81,7 +83,7 @@ export class RpcClient {
             eventEmitter.emit(StoneEvent.RpcServerConnected);
         })
 
-        socket.on('message', this.handleMessage.bind(this));
+        socket.on('message', this.onMessage.bind(this));
 
         //断线重连
         socket.on("close", () => {
@@ -96,9 +98,20 @@ export class RpcClient {
         })
     }
 
-    private handleMessage(msg: Buffer | string) {
+    private onMessage(msg: string) {
+        if (this._bulk) {
+            const msgs: string[] = JSON.parse(msg);
+            msgs.forEach((tempMsg) => {
+                this.handleMessage(tempMsg);
+            });
+        }else{
+            this.handleMessage(msg);
+        }
+    }
+
+    private handleMessage(message: string) {
         // 客户端收到 call  send  result
-        const rpcMsg = RpcUtils.decodeRpcMsg(msg as any);
+        const rpcMsg = RpcUtils.decodeRpcMsg(message);
         switch (rpcMsg.type) {
             case RpcMessageType.call:
                 return this.handleCall(rpcMsg as RpcReqMsg);
@@ -113,8 +126,8 @@ export class RpcClient {
     private handleResult(rpcResult: RpcTransferResult) {
         const requestCache = this._requestMap.get(rpcResult.requestId);
         if (!requestCache) return;
-        requestCache.resolve(rpcResult.result);
         this._requestMap.delete(rpcResult.requestId);
+        requestCache.resolve(rpcResult.result);
     }
 
     private async handleCall(rpcMsg: RpcReqMsg) {

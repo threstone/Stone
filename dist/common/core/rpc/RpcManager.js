@@ -51,12 +51,15 @@ class RpcManager {
         this._serverWorker = [];
         const rpcPorts = serversConfigMap.get('master').rpcPorts;
         rpcPorts.forEach((port) => {
+            var _a, _b;
             const worker = new BaseWorker_1.BaseWorker(path.join(__dirname, '../server/ServerLauncher'), {
                 nodeId: `RPC${port}`,
                 port: port,
                 autuResume: true,
                 serverType: 'RPC',
-                env
+                env,
+                rpcBulkSize: (_a = serverConfig.rpcBulkSize) !== null && _a !== void 0 ? _a : 500,
+                rpcBulkTime: (_b = serverConfig.rpcBulkTime) !== null && _b !== void 0 ? _b : 10,
             });
             this._serverWorker.push(worker);
             worker.fork();
@@ -72,7 +75,7 @@ class RpcManager {
         const rpcPorts = config.rpcPorts;
         if (rpcPorts) {
             rpcPorts.forEach((port) => {
-                this._clients.push(new RpcClient_1.RpcClient(config.ip, port));
+                this._clients.push(new RpcClient_1.RpcClient(config.ip, port, config.rpcBulkTime !== 0));
             });
         }
         else {
