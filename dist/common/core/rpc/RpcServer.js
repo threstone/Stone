@@ -5,13 +5,6 @@ const WS = require("ws");
 const RpcUtils_1 = require("./RpcUtils");
 const RpcSession_1 = require("./RpcSession");
 Object.defineProperty(exports, "RpcSession", { enumerable: true, get: function () { return RpcSession_1.RpcSession; } });
-// let count = 0;
-// let lastCalcTime = Date.now();
-// setInterval(() => {
-//     logger.info(`平均消息处理速度:${Math.ceil(count / ((Date.now() - lastCalcTime) / 1000))}条/秒`);
-//     count = 0;
-//     lastCalcTime = Date.now();
-// }, 1000);
 class RpcServer {
     constructor(port = startupParam.port) {
         this._serverMapList = new Map();
@@ -20,7 +13,6 @@ class RpcServer {
         let wss = new WS.Server({ port });
         logger.debug(`[${process.pid}] rpc server start, port:${port}`);
         wss.on("connection", (ws, req) => {
-            // const session: RpcSession = { socket: ws, isInit: false }
             const session = new RpcSession_1.RpcSession(ws);
             ws.on('message', this.handleMessage.bind(this, session));
             ws.on("error", (err) => {
@@ -50,7 +42,6 @@ class RpcServer {
     }
     handleMessage(session, buffer) {
         const msg = buffer.toString();
-        // count++;
         if (session.isInit === false) {
             const rpcMsg = RpcUtils_1.RpcUtils.decodeRpcMsg(msg);
             session.isInit = true;

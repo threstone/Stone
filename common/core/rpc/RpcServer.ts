@@ -1,13 +1,6 @@
 import * as WS from "ws"
 import { RpcUtils } from "./RpcUtils";
 import { RpcSession } from "./RpcSession";
-// let count = 0;
-// let lastCalcTime = Date.now();
-// setInterval(() => {
-//     logger.info(`平均消息处理速度:${Math.ceil(count / ((Date.now() - lastCalcTime) / 1000))}条/秒`);
-//     count = 0;
-//     lastCalcTime = Date.now();
-// }, 1000);
 class RpcServer {
 
     private _serverMapList = new Map<string, RpcSession[]>();
@@ -24,7 +17,6 @@ class RpcServer {
         let wss = new WS.Server({ port });
         logger.debug(`[${process.pid}] rpc server start, port:${port}`)
         wss.on("connection", (ws: WS, req) => {
-            // const session: RpcSession = { socket: ws, isInit: false }
             const session = new RpcSession(ws);
             ws.on('message', this.handleMessage.bind(this, session));
 
@@ -58,7 +50,6 @@ class RpcServer {
 
     private handleMessage(session: RpcSession, buffer: Buffer) {
         const msg = buffer.toString();
-        // count++;
         if (session.isInit === false) {
             const rpcMsg = RpcUtils.decodeRpcMsg(msg) as RpcReqMsg;
             session.isInit = true;

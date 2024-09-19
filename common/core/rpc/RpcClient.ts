@@ -72,7 +72,7 @@ export class RpcClient {
     private connectRpcServer() {
         this._socket && this._socket.terminate();
         const url = "ws://" + this._ip + ":" + this._port;
-        const socket: WS = new WS(url);
+        const socket: WS = new WS(url, { generateMask: () => { } });
         this._socket = socket;
 
         socket.on("open", () => {
@@ -104,7 +104,7 @@ export class RpcClient {
             msgs.forEach((tempMsg) => {
                 this.handleMessage(tempMsg);
             });
-        }else{
+        } else {
             this.handleMessage(msg);
         }
     }

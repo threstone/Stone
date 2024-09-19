@@ -58,7 +58,7 @@ class RpcManager {
                 autuResume: true,
                 serverType: 'RPC',
                 env,
-                rpcBulkSize: (_a = serverConfig.rpcBulkSize) !== null && _a !== void 0 ? _a : 500,
+                rpcBulkSize: (_a = serverConfig.rpcBulkSize) !== null && _a !== void 0 ? _a : 100,
                 rpcBulkTime: (_b = serverConfig.rpcBulkTime) !== null && _b !== void 0 ? _b : 10,
             });
             this._serverWorker.push(worker);

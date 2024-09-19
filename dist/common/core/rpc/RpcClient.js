@@ -61,7 +61,7 @@ class RpcClient {
     connectRpcServer() {
         this._socket && this._socket.terminate();
         const url = "ws://" + this._ip + ":" + this._port;
-        const socket = new WS(url);
+        const socket = new WS(url, { generateMask: () => { } });
         this._socket = socket;
         socket.on("open", () => {
             this.isClose = false;
