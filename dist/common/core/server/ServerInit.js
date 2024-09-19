@@ -30,6 +30,7 @@ class ServerInit {
         RpcManager_1.RpcManager.init();
     }
     static initLogger() {
+        var _a, _b;
         const s = startupParam;
         const nodeId = (startupParam === null || startupParam === void 0 ? void 0 : startupParam.nodeId) || 'app';
         const pattern = s.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]';
@@ -74,7 +75,7 @@ class ServerInit {
                         "debug"
                     ],
                     "level": s.logLevel || 'ALL',
-                    "enableCallStack": s.logTrace
+                    "enableCallStack": (_a = s.logTrace) !== null && _a !== void 0 ? _a : false
                 },
                 [nodeId + ' error']: {
                     "appenders": [
@@ -82,7 +83,7 @@ class ServerInit {
                         "err"
                     ],
                     "level": "error",
-                    "enableCallStack": s.logTrace
+                    "enableCallStack": (_b = s.logTrace) !== null && _b !== void 0 ? _b : false
                 }
             }
         };

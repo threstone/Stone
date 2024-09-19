@@ -16,17 +16,10 @@ if (args.indexOf('-h') !== -1 || args.indexOf('--help') !== -1) {
     process.exit();
 }
 
-// 环境命令
-const envIndex = Math.max(args.indexOf('-e'), args.indexOf('--environment'));
-let environment;
-if (envIndex !== -1) {
-    environment = args[envIndex + 1];
-    args.splice(envIndex, 2);
-}
+let environment: string;
+let isBackgroud = false;
 
-// 是否后台启动
-const isBackgroud = args.indexOf('-b') !== -1;
-
+handleArgs();
 handleCmd();
 
 function handleCmd() {
@@ -215,4 +208,16 @@ async function copyDir(src, dest) {
             await fs.promises.copyFile(srcPath, destPath);
         }
     }
+}
+
+function handleArgs() {
+    // 环境命令
+    const envIndex = Math.max(args.indexOf('-e'), args.indexOf('--environment'));
+    if (envIndex !== -1) {
+        environment = args[envIndex + 1];
+        args.splice(envIndex, 2);
+    }
+
+    // 是否后台启动
+    isBackgroud = args.indexOf('-b') !== -1;
 }

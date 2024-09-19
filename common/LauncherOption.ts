@@ -16,17 +16,20 @@ class LauncherOption implements ILauncherOption {
             const kvInfo = arg.split('=');
             const key: string = kvInfo[0];
             let value: string | number = kvInfo[1];
-            this[key] = value;
+            this[key] = this.tryGetValue(value);
         }
-        const anyThis = this as any;
-        this.autuResume = anyThis['autuResume'] === 'true';
-        this.logTrace = anyThis['logTrace'] === 'true';
 
-        if (this.rpcBulkSize) { this.rpcBulkSize = parseInt(this.rpcBulkSize as any, 10) }
-        if (this.rpcBulkTime) { this.rpcBulkTime = parseInt(this.rpcBulkTime as any, 10) }
-        
         global.nodeId = this.nodeId;
         global.env = this.env;
+    }
+
+    private tryGetValue(value: string) {
+        if (value === 'true' || value === 'false') {
+            return value === 'true';
+        }
+
+        const num = parseInt(value, 10);
+        return Number.isNaN(num) ? value : num;
     }
 }
 export const launcherOption = new LauncherOption();

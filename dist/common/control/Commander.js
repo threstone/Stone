@@ -15,15 +15,9 @@ if (args.indexOf('-h') !== -1 || args.indexOf('--help') !== -1) {
     showHelp();
     process.exit();
 }
-// 环境命令
-const envIndex = Math.max(args.indexOf('-e'), args.indexOf('--environment'));
 let environment;
-if (envIndex !== -1) {
-    environment = args[envIndex + 1];
-    args.splice(envIndex, 2);
-}
-// 是否后台启动
-const isBackgroud = args.indexOf('-b') !== -1;
+let isBackgroud = false;
+handleArgs();
 handleCmd();
 function handleCmd() {
     // 删除不支持的所有参数
@@ -186,5 +180,15 @@ async function copyDir(src, dest) {
             await fs.promises.copyFile(srcPath, destPath);
         }
     }
+}
+function handleArgs() {
+    // 环境命令
+    const envIndex = Math.max(args.indexOf('-e'), args.indexOf('--environment'));
+    if (envIndex !== -1) {
+        environment = args[envIndex + 1];
+        args.splice(envIndex, 2);
+    }
+    // 是否后台启动
+    isBackgroud = args.indexOf('-b') !== -1;
 }
 //# sourceMappingURL=Commander.js.map

@@ -9,19 +9,17 @@ class LauncherOption {
             const kvInfo = arg.split('=');
             const key = kvInfo[0];
             let value = kvInfo[1];
-            this[key] = value;
-        }
-        const anyThis = this;
-        this.autuResume = anyThis['autuResume'] === 'true';
-        this.logTrace = anyThis['logTrace'] === 'true';
-        if (this.rpcBulkSize) {
-            this.rpcBulkSize = parseInt(this.rpcBulkSize, 10);
-        }
-        if (this.rpcBulkTime) {
-            this.rpcBulkTime = parseInt(this.rpcBulkTime, 10);
+            this[key] = this.tryGetValue(value);
         }
         global.nodeId = this.nodeId;
         global.env = this.env;
+    }
+    tryGetValue(value) {
+        if (value === 'true' || value === 'false') {
+            return value === 'true';
+        }
+        const num = parseInt(value, 10);
+        return Number.isNaN(num) ? value : num;
     }
 }
 exports.launcherOption = new LauncherOption();

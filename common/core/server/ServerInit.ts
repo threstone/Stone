@@ -75,7 +75,7 @@ export class ServerInit {
                         "debug"
                     ],
                     "level": s.logLevel || 'ALL',
-                    "enableCallStack": s.logTrace
+                    "enableCallStack": s.logTrace ?? false
                 },
                 [nodeId + ' error']: {
                     "appenders": [
@@ -83,7 +83,7 @@ export class ServerInit {
                         "err"
                     ],
                     "level": "error",
-                    "enableCallStack": s.logTrace
+                    "enableCallStack": s.logTrace ?? false
                 }
             }
         };
