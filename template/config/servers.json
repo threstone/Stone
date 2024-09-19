@@ -6,7 +6,7 @@
             "rpcPorts": [
                 995
             ],
-            "rpcBulkSize": 500,
+            "rpcBulkSize": 100,
             "rpcBulkTime": 10,
             "isCreateRpcDeclare": true
         },
