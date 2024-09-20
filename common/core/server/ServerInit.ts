@@ -11,6 +11,10 @@ export class ServerInit {
             exceptionLogger.error('Caught exception: err:', err);
         });
 
+        process.on('unhandledRejection', (reason, promise) => {
+            exceptionLogger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+        });
+
         process.on('message', (message) => {
             if (message === 'getChildInfo') {
                 const memoryUsage = process.memoryUsage();
