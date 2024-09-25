@@ -49,29 +49,33 @@ class RpcServer {
     }
 
     private handleMessage(session: RpcSession, buffer: Buffer) {
-        const msg = buffer.toString();
-        if (session.isInit === false) {
-            const rpcMsg = RpcUtils.decodeRpcMsg(msg) as RpcReqMsg;
-            session.isInit = true;
-            session.serverType = rpcMsg.serverName;
-            session.nodeId = rpcMsg.className;
+        try {
+            const msg = buffer.toString();
+            if (session.isInit === false) {
+                const rpcMsg = RpcUtils.decodeRpcMsg(msg) as RpcReqMsg;
+                session.isInit = true;
+                session.serverType = rpcMsg.serverName;
+                session.nodeId = rpcMsg.className;
 
-            let nodeList = this._serverMapList.get(session.serverType);
-            if (!nodeList) {
-                nodeList = [];
-                this._serverMapList.set(session.serverType, nodeList);
+                let nodeList = this._serverMapList.get(session.serverType);
+                if (!nodeList) {
+                    nodeList = [];
+                    this._serverMapList.set(session.serverType, nodeList);
+                }
+                nodeList.push(session);
+                this._nodeIdMap.set(session.nodeId, session);
+                return;
             }
-            nodeList.push(session);
-            this._nodeIdMap.set(session.nodeId, session);
-            return;
-        }
 
-        if (this._isHandleMsg) {
-            RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
-        } else {
-            eventEmitter.once('RpcServerHandleStart', () => {
+            if (this._isHandleMsg) {
                 RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
-            });
+            } else {
+                eventEmitter.once('RpcServerHandleStart', () => {
+                    RpcUtils.transferMessage(msg, this._serverMapList, this._nodeIdMap);
+                });
+            }
+        } catch (error) {
+            logger.error('rpc server 处理消息出错:', error);
         }
     }
 }

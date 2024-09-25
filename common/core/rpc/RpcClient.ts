@@ -99,13 +99,17 @@ export class RpcClient {
     }
 
     private onMessage(msg: string) {
-        if (this._bulk) {
-            const msgs: string[] = JSON.parse(msg);
-            msgs.forEach((tempMsg) => {
-                this.handleMessage(tempMsg);
-            });
-        } else {
-            this.handleMessage(msg);
+        try {
+            if (this._bulk) {
+                const msgs: string[] = JSON.parse(msg);
+                msgs.forEach((tempMsg) => {
+                    this.handleMessage(tempMsg);
+                });
+            } else {
+                this.handleMessage(msg);
+            }
+        } catch (error) {
+            logger.error('处理rpc信息出错:', error);
         }
     }
 

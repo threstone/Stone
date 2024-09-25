@@ -83,14 +83,19 @@ class RpcClient {
         });
     }
     onMessage(msg) {
-        if (this._bulk) {
-            const msgs = JSON.parse(msg);
-            msgs.forEach((tempMsg) => {
-                this.handleMessage(tempMsg);
-            });
+        try {
+            if (this._bulk) {
+                const msgs = JSON.parse(msg);
+                msgs.forEach((tempMsg) => {
+                    this.handleMessage(tempMsg);
+                });
+            }
+            else {
+                this.handleMessage(msg);
+            }
         }
-        else {
-            this.handleMessage(msg);
+        catch (error) {
+            logger.error('处理rpc信息出错:', error);
         }
     }
     handleMessage(message) {
