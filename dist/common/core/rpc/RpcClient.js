@@ -2,21 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RpcClient = void 0;
 const WS = require("ws");
-const path = require("path");
 const RpcUtils_1 = require("./RpcUtils");
 const StoneDefine_1 = require("../../StoneDefine");
+const RpcManager_1 = require("./RpcManager");
 class RpcClient {
     static getRemoteObject(rpcMsg) {
         try {
             let remoteObject = this._remoteMap.get(rpcMsg.className);
             if (!remoteObject) {
+                const serversCodePath = RpcManager_1.RpcManager.getServersCodePath();
                 let remoteClass;
-                try {
-                    remoteClass = require(path.join(process.cwd(), `dist/app/servers/${serverConfig.serverType}/src/remote/${rpcMsg.className}`))[rpcMsg.className];
-                }
-                catch (error) {
-                    remoteClass = require(path.join(process.cwd(), `app/servers/${serverConfig.serverType}/src/remote/${rpcMsg.className}`))[rpcMsg.className];
-                }
+                remoteClass = require(`${serversCodePath}/${serverConfig.serverType}/src/remote/${rpcMsg.className}`)[rpcMsg.className];
                 remoteObject = new remoteClass;
                 this._remoteMap.set(rpcMsg.className, remoteObject);
             }

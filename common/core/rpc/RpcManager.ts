@@ -94,7 +94,7 @@ export class RpcManager {
         }
     }
 
-    private static getServersCodePath() {
+    static getServersCodePath() {
         const cwd = process.cwd();
         const codeDir = cwd.substring(path.join(cwd, '../').length);
         let serversPath = path.join(cwd, `${codeDir}/app/servers`);

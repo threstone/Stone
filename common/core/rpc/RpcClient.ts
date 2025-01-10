@@ -2,6 +2,7 @@ import * as WS from "ws";
 import * as path from "path";
 import { RpcMessageType, RpcUtils } from "./RpcUtils";
 import { StoneEvent } from "../../StoneDefine";
+import { RpcManager } from "./RpcManager";
 
 export class RpcClient {
 
@@ -10,16 +11,9 @@ export class RpcClient {
         try {
             let remoteObject = this._remoteMap.get(rpcMsg.className);
             if (!remoteObject) {
+                const serversCodePath = RpcManager.getServersCodePath();
                 let remoteClass: any;
-                try {
-                    remoteClass = require(
-                        path.join(process.cwd(), `dist/app/servers/${serverConfig.serverType}/src/remote/${rpcMsg.className}`)
-                    )[rpcMsg.className];
-                } catch (error) {
-                    remoteClass = require(
-                        path.join(process.cwd(), `app/servers/${serverConfig.serverType}/src/remote/${rpcMsg.className}`)
-                    )[rpcMsg.className];
-                }
+                remoteClass = require(`${serversCodePath}/${serverConfig.serverType}/src/remote/${rpcMsg.className}`)[rpcMsg.className];
                 remoteObject = new remoteClass;
                 this._remoteMap.set(rpcMsg.className, remoteObject);
             }
