@@ -7,7 +7,8 @@ const fs = require("fs");
 class ServerLauncher {
     static start() {
         ServerInit_1.ServerInit.init();
-        if (startupParam.serverType === 'RPC') {
+        const serverType = startupParam.serverType;
+        if (serverType === 'RPC') {
             require('../rpc/RpcServer');
         }
         else if (startupParam.nodeId === 'master') {
@@ -15,19 +16,28 @@ class ServerLauncher {
         }
         else {
             try {
-                let mainPath = path.join(process.cwd(), `dist/app/servers/${startupParam.serverType}/src/bin/main.js`);
+                let mainPath = path.join(process.cwd(), `dist/app/servers/${serverType}/src/bin/main.js`);
                 if (fs.existsSync(mainPath) === true) {
                     require(mainPath);
+                    return;
                 }
-                else {
-                    mainPath = path.join(process.cwd(), `app/servers/${startupParam.serverType}/src/bin/main.js`);
-                    if (fs.existsSync(mainPath) === true) {
-                        require(mainPath);
-                    }
-                    else {
-                        logger.warn('找不到入口文件:', mainPath.substring(0, mainPath.length - 3));
-                    }
+                mainPath = path.join(process.cwd(), `app/servers/${serverType}/src/bin/main.js`);
+                if (fs.existsSync(mainPath) === true) {
+                    require(mainPath);
+                    return;
                 }
+                const dirName = process.cwd().substring(path.join(process.cwd(), '../').length);
+                mainPath = path.join(process.cwd(), `dist/${dirName}/app/servers/${serverType}/src/bin/main.js`);
+                if (fs.existsSync(mainPath) === true) {
+                    require(mainPath);
+                    return;
+                }
+                mainPath = path.join(process.cwd(), `${dirName}/app/servers/${serverType}/src/bin/main.js`);
+                if (fs.existsSync(mainPath) === true) {
+                    require(mainPath);
+                    return;
+                }
+                logger.warn('找不到入口文件:', mainPath.substring(0, mainPath.length - 3));
             }
             catch (error) {
                 logger.error(`入口文件执行出错`, error);

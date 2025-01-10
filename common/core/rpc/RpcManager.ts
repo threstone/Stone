@@ -94,6 +94,22 @@ export class RpcManager {
         }
     }
 
+    private static getServersCodePath() {
+        const cwd = process.cwd();
+        const codeDir = cwd.substring(path.join(cwd, '../').length);
+        let serversPath = path.join(cwd, `${codeDir}/app/servers`);
+        if (this.fileExist(serversPath)) return serversPath;
+
+        serversPath = path.join(cwd, `dist/${codeDir}/app/servers`);
+        if (this.fileExist(serversPath)) return serversPath;
+
+        serversPath = path.join(cwd, 'dist/app/servers');
+        if (this.fileExist(serversPath)) return serversPath;
+
+        serversPath = path.join(cwd, 'app/servers');
+        if (this.fileExist(serversPath)) return serversPath;
+    }
+
     /** 获取服务remote信息 */
     private static getRemoteInfo() {
         if (this._serverRemoteMap) {
@@ -102,10 +118,7 @@ export class RpcManager {
         // 遍历所有服务的remote目录
         const serverRemoteMap = new Map<string, Map<string, any>>();
 
-        let serversPath = path.join(process.cwd(), 'dist/app/servers');
-        if (this.fileExist(serversPath) === false) {
-            serversPath = path.join(process.cwd(), 'app/servers');
-        }
+        const serversPath = this.getServersCodePath();
         const dirs = fs.readdirSync(serversPath);
         for (let index = 0; index < dirs.length; index++) {
             const dirName = dirs[index];
