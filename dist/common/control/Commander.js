@@ -104,6 +104,8 @@ async function updaterpcdesc() {
 /** 展示帮助 */
 function showHelp() {
     console.log(`
+Version:${require('../../../package.json').version}
+
 Options:
 
     -h --help                 展示所有帮助
