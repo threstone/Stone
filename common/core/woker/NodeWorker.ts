@@ -18,4 +18,9 @@ export class NodeWorker extends BaseWorker {
             this._nodeMgr.serverMap.delete(this.serverConfig.nodeId);
         });
     }
+
+    kill(): void {
+        super.kill();
+        this._nodeMgr.serverMap.delete(this.serverConfig.nodeId);
+    }
 }

@@ -16,6 +16,10 @@ class NodeWorker extends BaseWorker_1.BaseWorker {
             this._nodeMgr.serverMap.delete(this.serverConfig.nodeId);
         });
     }
+    kill() {
+        super.kill();
+        this._nodeMgr.serverMap.delete(this.serverConfig.nodeId);
+    }
 }
 exports.NodeWorker = NodeWorker;
 //# sourceMappingURL=NodeWorker.js.map

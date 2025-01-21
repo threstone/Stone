@@ -105,6 +105,7 @@ export class NodeMgr {
         const node = this.serverMap.get(nodeId);
         const serverConfig = serversConfigMap.get(nodeId);
         if (!node || !serverConfig) {
+            logger.error(`restart ${nodeId} fail,node or serverConfig not found`);
             return;
         }
         node.restart(serverConfig);

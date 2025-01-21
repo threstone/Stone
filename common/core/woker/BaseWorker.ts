@@ -7,7 +7,6 @@ export class BaseWorker extends EventEmitter {
 
     serverConfig: ServerConfig;
     worker: ChildProcess.ChildProcess;
-    exitedAfterKill: boolean = false;
 
     get pid() { return this.worker?.pid }
 
@@ -22,7 +21,6 @@ export class BaseWorker extends EventEmitter {
             logger.error(`${this.serverConfig.nodeId} no execPath`);
             return;
         }
-        this.exitedAfterKill = false;
         this._options = options || this._options;
         this.startWorker();
     }
@@ -30,8 +28,8 @@ export class BaseWorker extends EventEmitter {
     kill() {
         try {
             logger.info(`kill the ${this.serverConfig.nodeId} worker${this.worker.pid}`);
-            this.exitedAfterKill = true;
-            process.kill(this.worker.pid);
+            this.worker.kill();
+            this.worker.removeAllListeners();
         } catch (error) {
             logger.error(`kill the ${this.serverConfig.nodeId} worker${this.worker.pid} got a error:\n`, error)
         }
@@ -42,20 +40,19 @@ export class BaseWorker extends EventEmitter {
             this.serverConfig = serverConfig;
         }
         this.kill();
-        setTimeout(() => {
-            this.fork();
-        }, 2000);
+        this.fork();
     }
 
+
     onExit(code: number, signal: string) {
-        logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} exit code: ${code}, signal: ${signal}, exitedAfterKill: ${this.exitedAfterKill}`);
+        logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} exit code: ${code}, signal: ${signal}`);
         this.worker.removeAllListeners();
-        if (!this.exitedAfterKill && this.serverConfig.autuResume) {
-            setTimeout(() => {
-                logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} was exited, resume a new ${this.serverConfig.nodeId}`)
-                this.startWorker();
-            }, 5000);
-        }
+        setTimeout(() => {
+            if (this.serverConfig.autuResume) {
+                logger.info(`the ${this.serverConfig.nodeId} worker was exited, resume a new ${this.serverConfig.nodeId}`)
+                this.fork();
+            }
+        }, 1000);
     }
 
     onError(error: Error) {
