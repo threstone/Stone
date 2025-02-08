@@ -150,9 +150,19 @@ export class NodeMgr {
                     resolve(data);
                 });
             }),
-            new Promise<void>((resolve) => {
+            new Promise<any>((resolve) => {
                 setTimeout(() => {
-                    resolve();
+                    resolve({
+                        pid: node.pid,
+                        memoryUsage: {
+                            rss: 0,
+                            heapTotal: 0,
+                            heapUsed: 0,
+                            external: 0,
+                            arrayBuffers: 0,
+                        },
+                        uptime: 0
+                    });
                 }, 5000);
             })])
     }

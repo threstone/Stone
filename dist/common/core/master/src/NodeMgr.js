@@ -132,7 +132,17 @@ class NodeMgr {
             }),
             new Promise((resolve) => {
                 setTimeout(() => {
-                    resolve();
+                    resolve({
+                        pid: node.pid,
+                        memoryUsage: {
+                            rss: 0,
+                            heapTotal: 0,
+                            heapUsed: 0,
+                            external: 0,
+                            arrayBuffers: 0,
+                        },
+                        uptime: 0
+                    });
                 }, 5000);
             })
         ]);
