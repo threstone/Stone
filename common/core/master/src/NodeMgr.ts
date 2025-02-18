@@ -113,11 +113,9 @@ export class NodeMgr {
 
     public restartAll() {
         this.serverMap.forEach((node, nodeId) => {
-            const serverConfig = serversConfigMap.get(nodeId);
-            if (!serverConfig) {
-                return;
-            }
-            node.restart(serverConfig);
+            process.nextTick(() => {
+                this.restart(nodeId);
+            });
         })
     }
 

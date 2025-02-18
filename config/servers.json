@@ -16,12 +16,6 @@
                 "autuResume": true,
                 "logTrace": true,
                 "logLevel": "ALL"
-            },
-            {
-                "nodeId": "server_template2",
-                "autuResume": true,
-                "logTrace": true,
-                "logLevel": "ALL"
             }
         ]
     }
