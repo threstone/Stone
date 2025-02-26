@@ -5,8 +5,8 @@ var StoneEvent;
 (function (StoneEvent) {
     /** 成功链接到RPC服务器 */
     StoneEvent["RpcServerConnected"] = "RpcServerConnected";
-    /** servers配置更新 */
-    StoneEvent["ServersConfigUpdate"] = "ServersConfigUpdate";
+    // /** servers配置更新 */
+    // ServersConfigUpdate = 'ServersConfigUpdate'
 })(StoneEvent || (exports.StoneEvent = StoneEvent = {}));
 var RpcRouteType;
 (function (RpcRouteType) {

@@ -24,4 +24,8 @@ export class CommonUtils {
     static firstCharToLowerCase(str: string) {
         return str.charAt(0).toLocaleLowerCase() + str.substring(1);
     }
+
+    static formatMemory(bytes: number) {
+        return (bytes / 1024 / 1024).toFixed(2);
+    }
 }

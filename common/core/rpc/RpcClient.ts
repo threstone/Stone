@@ -1,5 +1,4 @@
 import * as WS from "ws";
-import * as path from "path";
 import { RpcMessageType, RpcUtils } from "./RpcUtils";
 import { StoneEvent } from "../../StoneDefine";
 import { RpcManager } from "./RpcManager";

@@ -1,5 +1,6 @@
 import * as ChildProcess from 'child_process';
 import EventEmitter = require('events');
+import { CommonUtils } from '../../CommonUtils';
 export class BaseWorker extends EventEmitter {
 
     protected _execPath: string;
@@ -83,5 +84,54 @@ export class BaseWorker extends EventEmitter {
         worker.on('exit', this.onExit.bind(this));
         worker.on('error', this.onError.bind(this));
         worker.on('message', this.onMessage.bind(this));
+    }
+
+    async getWokerMessage(node: BaseWorker, maxLens: {}, datas: {}) {
+        const info = await this.getWorkerInfo(node) as { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number };
+        const childData = {
+            pid: node.pid.toString(),
+            nodeId: node.serverConfig.nodeId,
+            serverType: node.serverConfig.serverType,
+            rss: CommonUtils.formatMemory(info.memoryUsage.rss),
+            heapTotal: CommonUtils.formatMemory(info.memoryUsage.heapTotal),
+            heapUsed: CommonUtils.formatMemory(info.memoryUsage.heapUsed),
+            runTime: (info.uptime / 60).toFixed(2)
+        };
+        Object.keys(childData).forEach((key) => {
+            maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
+        });
+        if (datas[node.serverConfig.serverType] == null) {
+            datas[node.serverConfig.serverType] = [];
+        }
+        datas[node.serverConfig.serverType].push(childData);
+    }
+
+    private getWorkerInfo(node: BaseWorker) {
+        let timer: NodeJS.Timeout;
+        return Promise.race([
+            new Promise((resolve) => {
+                node.sendMessage('getChildInfo');
+                node.once('getChildInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
+                    if (timer) { clearTimeout(timer); }
+                    data.pid = node.pid;
+                    resolve(data);
+                });
+            }),
+            new Promise<any>((resolve) => {
+                timer = setTimeout(() => {
+                    timer = null;
+                    resolve({
+                        pid: node.pid,
+                        memoryUsage: {
+                            rss: 0,
+                            heapTotal: 0,
+                            heapUsed: 0,
+                            external: 0,
+                            arrayBuffers: 0,
+                        },
+                        uptime: 0
+                    });
+                }, 5000);
+            })])
     }
 }

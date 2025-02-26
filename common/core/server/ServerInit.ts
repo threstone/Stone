@@ -7,6 +7,22 @@ import { configure, getLogger } from 'log4js';
 let exceptionLogger: ILog = console as any;
 export class ServerInit {
     static init() {
+        // 初始化启动参数
+        global.startupParam = launcherOption;
+        // 初始化全局事件对象
+        global.eventEmitter = new EventEmitter();
+
+        // 初始化进程事件
+        ServerInit.initProcessEvent();
+        // 日志初始化
+        ServerInit.initLogger();
+        // 初始化service config manager
+        ServersConfigMgr.init();
+        // RPC模块初始化
+        RpcManager.init();
+    }
+
+    private static initProcessEvent() {
         process.on('uncaughtException', (err) => {
             exceptionLogger.error('Caught exception: err:', err);
         });
@@ -21,20 +37,9 @@ export class ServerInit {
                 process.send({ event: 'getChildInfo', data: { memoryUsage, uptime: process.uptime() } });
             }
         });
-
-        // 初始化启动参数
-        global.startupParam = launcherOption;
-        // 初始化全局事件对象
-        global.eventEmitter = new EventEmitter();
-        // 日志初始化
-        ServerInit.initLogger();
-        // 初始化service config manager
-        ServersConfigMgr.init();
-        // RPC模块初始化
-        RpcManager.init();
     }
 
-    static initLogger() {
+    private static initLogger() {
         const s = startupParam as any;
         const nodeId = startupParam?.nodeId || 'app'
         const pattern = s.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]'

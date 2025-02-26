@@ -1,33 +1,13 @@
-import * as fs from 'fs';
 import * as path from 'path';
-import { StoneEvent } from '../../StoneDefine';
 export class ServersConfigMgr {
 
-    private static _watcher: fs.FSWatcher;
     private static _configFilePath: string;
 
     static init() {
-        if (!this._watcher) {
-            this._configFilePath = path.join(process.cwd(), '/config/servers.json');
-            const serversConfig = require(this._configFilePath)
-            this._watcher = fs.watch(this._configFilePath, () => {
-                try {
-                    const config = require(this._configFilePath);
-                    // 删除缓存
-                    delete require.cache[this._configFilePath];
-                    // 重新require
-                    this.ininConfigMap(config);
-                    // 派发更新事件
-                    eventEmitter.emit(StoneEvent.ServersConfigUpdate);
-                    logger.debug('update servers.json');
-                } catch (error) {
-                    logger.error('热更servers配置异常', error.message);
-                }
-            });
-
-            this.ininConfigMap(serversConfig);
-            global.serverConfig = serversConfigMap.get(startupParam.nodeId);
-        }
+        this._configFilePath = path.join(process.cwd(), '/config/servers.json');
+        const serversConfig = require(this._configFilePath)
+        this.ininConfigMap(serversConfig);
+        global.serverConfig = serversConfigMap.get(startupParam.nodeId);
     }
 
     static ininConfigMap(configs: any) {

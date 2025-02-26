@@ -1,12 +1,22 @@
 import * as ChildProcess from 'child_process';
 import { NodeWorker } from '../../woker/NodeWorker';
 import { RpcManager } from '../../rpc/RpcManager';
-import { BaseWorker } from '../../woker/BaseWorker';
+import { CommonUtils } from '../../../CommonUtils';
 export class NodeMgr {
     public serverMap: Map<string, NodeWorker>;
 
     constructor() {
         this.serverMap = new Map<string, NodeWorker>();
+        // const setFun = this.serverMap.set.bind(this.serverMap);
+        // const deleteFun = this.serverMap.delete.bind(this.serverMap);
+        // this.serverMap.set = (k, v) => {
+        //     console.log('set');
+        //     return setFun(k, v);
+        // };
+        // this.serverMap.delete = (k) => {
+        //     console.log('delete');
+        //     return deleteFun(k);
+        // };
     }
 
     public async getServerInfo() {
@@ -36,9 +46,9 @@ export class NodeMgr {
             pid: process.pid.toString(),
             nodeId: 'master',
             serverType: 'master',
-            rss: this.formatMemory(memoryUsage.rss),
-            heapTotal: this.formatMemory(memoryUsage.heapTotal),
-            heapUsed: this.formatMemory(memoryUsage.heapUsed),
+            rss: CommonUtils.formatMemory(memoryUsage.rss),
+            heapTotal: CommonUtils.formatMemory(memoryUsage.heapTotal),
+            heapUsed: CommonUtils.formatMemory(memoryUsage.heapUsed),
             runTime: (process.uptime() / 60).toFixed(2)
         };
         Object.keys(masterData).forEach((key) => {
@@ -46,10 +56,10 @@ export class NodeMgr {
         });
         datas['master'] = [masterData];
         this.serverMap.forEach((node) => {
-            tasks.push(this.getWokerMessage(node, maxLens, datas));
+            tasks.push(node.getWokerMessage(node, maxLens, datas));
         });
         RpcManager.getRpcWorker().forEach((node) => {
-            tasks.push(this.getWokerMessage(node, maxLens, datas));
+            tasks.push(node.getWokerMessage(node, maxLens, datas));
         });
         await Promise.all(tasks);
 
@@ -119,52 +129,6 @@ export class NodeMgr {
         })
     }
 
-    private async getWokerMessage(node: BaseWorker, maxLens: {}, datas: {}) {
-        const info = await this.getWorkerInfo(node) as { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number };
-        const childData = {
-            pid: node.pid.toString(),
-            nodeId: node.serverConfig.nodeId,
-            serverType: node.serverConfig.serverType,
-            rss: this.formatMemory(info.memoryUsage.rss),
-            heapTotal: this.formatMemory(info.memoryUsage.heapTotal),
-            heapUsed: this.formatMemory(info.memoryUsage.heapUsed),
-            runTime: (info.uptime / 60).toFixed(2)
-        };
-        Object.keys(childData).forEach((key) => {
-            maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
-        });
-        if (datas[node.serverConfig.serverType] == null) {
-            datas[node.serverConfig.serverType] = [];
-        }
-        datas[node.serverConfig.serverType].push(childData);
-    }
-
-    private getWorkerInfo(node: BaseWorker) {
-        return Promise.race([
-            new Promise((resolve) => {
-                node.sendMessage('getChildInfo');
-                node.once('getChildInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
-                    data.pid = node.pid;
-                    resolve(data);
-                });
-            }),
-            new Promise<any>((resolve) => {
-                setTimeout(() => {
-                    resolve({
-                        pid: node.pid,
-                        memoryUsage: {
-                            rss: 0,
-                            heapTotal: 0,
-                            heapUsed: 0,
-                            external: 0,
-                            arrayBuffers: 0,
-                        },
-                        uptime: 0
-                    });
-                }, 5000);
-            })])
-    }
-
     private getWeight(name: string) {
         if (name === 'master') {
             return Number.MIN_SAFE_INTEGER;
@@ -174,10 +138,6 @@ export class NodeMgr {
             result += name.charCodeAt(index)
         }
         return result;
-    }
-
-    private formatMemory(bytes: number) {
-        return (bytes / 1024 / 1024).toFixed(2);
     }
 }
 

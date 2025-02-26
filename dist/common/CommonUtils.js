@@ -26,6 +26,9 @@ class CommonUtils {
     static firstCharToLowerCase(str) {
         return str.charAt(0).toLocaleLowerCase() + str.substring(1);
     }
+    static formatMemory(bytes) {
+        return (bytes / 1024 / 1024).toFixed(2);
+    }
 }
 exports.CommonUtils = CommonUtils;
 //# sourceMappingURL=CommonUtils.js.map

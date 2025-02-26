@@ -1,32 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServersConfigMgr = void 0;
-const fs = require("fs");
 const path = require("path");
-const StoneDefine_1 = require("../../StoneDefine");
 class ServersConfigMgr {
     static init() {
-        if (!this._watcher) {
-            this._configFilePath = path.join(process.cwd(), '/config/servers.json');
-            const serversConfig = require(this._configFilePath);
-            this._watcher = fs.watch(this._configFilePath, () => {
-                try {
-                    const config = require(this._configFilePath);
-                    // 删除缓存
-                    delete require.cache[this._configFilePath];
-                    // 重新require
-                    this.ininConfigMap(config);
-                    // 派发更新事件
-                    eventEmitter.emit(StoneDefine_1.StoneEvent.ServersConfigUpdate);
-                    logger.debug('update servers.json');
-                }
-                catch (error) {
-                    logger.error('热更servers配置异常', error.message);
-                }
-            });
-            this.ininConfigMap(serversConfig);
-            global.serverConfig = serversConfigMap.get(startupParam.nodeId);
-        }
+        this._configFilePath = path.join(process.cwd(), '/config/servers.json');
+        const serversConfig = require(this._configFilePath);
+        this.ininConfigMap(serversConfig);
+        global.serverConfig = serversConfigMap.get(startupParam.nodeId);
     }
     static ininConfigMap(configs) {
         global.serversConfigMap = new Map();

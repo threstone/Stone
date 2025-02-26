@@ -9,6 +9,20 @@ const log4js_1 = require("log4js");
 let exceptionLogger = console;
 class ServerInit {
     static init() {
+        // 初始化启动参数
+        global.startupParam = LauncherOption_1.launcherOption;
+        // 初始化全局事件对象
+        global.eventEmitter = new events_1.EventEmitter();
+        // 初始化进程事件
+        ServerInit.initProcessEvent();
+        // 日志初始化
+        ServerInit.initLogger();
+        // 初始化service config manager
+        ServersConfigMgr_1.ServersConfigMgr.init();
+        // RPC模块初始化
+        RpcManager_1.RpcManager.init();
+    }
+    static initProcessEvent() {
         process.on('uncaughtException', (err) => {
             exceptionLogger.error('Caught exception: err:', err);
         });
@@ -21,16 +35,6 @@ class ServerInit {
                 process.send({ event: 'getChildInfo', data: { memoryUsage, uptime: process.uptime() } });
             }
         });
-        // 初始化启动参数
-        global.startupParam = LauncherOption_1.launcherOption;
-        // 初始化全局事件对象
-        global.eventEmitter = new events_1.EventEmitter();
-        // 日志初始化
-        ServerInit.initLogger();
-        // 初始化service config manager
-        ServersConfigMgr_1.ServersConfigMgr.init();
-        // RPC模块初始化
-        RpcManager_1.RpcManager.init();
     }
     static initLogger() {
         var _a, _b;
