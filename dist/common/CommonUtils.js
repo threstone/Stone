@@ -29,6 +29,24 @@ class CommonUtils {
     static formatMemory(bytes) {
         return (bytes / 1024 / 1024).toFixed(2);
     }
+    static getParams(params, target) {
+        const result = target || {};
+        for (let index = 0; index < params.length; index++) {
+            const arg = params[index];
+            const kvInfo = arg.split('=');
+            const key = kvInfo[0];
+            const value = kvInfo[1];
+            result[key] = CommonUtils.tryGetStartParamValue(value);
+        }
+        return result;
+    }
+    static tryGetStartParamValue(value) {
+        if (value === 'true' || value === 'false') {
+            return value === 'true';
+        }
+        const num = parseInt(value, 10);
+        return Number.isNaN(num) ? value : num;
+    }
 }
 exports.CommonUtils = CommonUtils;
 //# sourceMappingURL=CommonUtils.js.map

@@ -23,6 +23,10 @@ declare interface ILauncherOption {
     logTrace?: boolean
     /** 输出级别,默认All */
     logLevel?: string
+    /** rpc最大缓存消息条数,默认100条 */
+    rpcBulkSize?: number
+    /** rpc最大缓存时间,默认10毫秒 */
+    rpcBulkTime?: number
 }
 
 declare interface ServerConfig {
@@ -36,11 +40,15 @@ declare interface ServerConfig {
     /**  master配置 是否生成rpc描述文件 */
     isCreateRpcDeclare?: boolean
     rpcPorts?: number[]
+    /** rpc最大缓存消息条数,默认100条 */
+    rpcBulkSize?: number
+    /** rpc最大缓存时间,默认10毫秒 */
+    rpcBulkTime?: number
     /** 是否输出堆栈信息,默认false */
     logTrace?: boolean
     /** 输出级别,默认All */
     logLevel?: string
-    /** master配置 调试端口,配置后会打开对应的端口以方便远程调试 */
+    /** 调试端口,配置后会打开对应的端口以方便远程调试 */
     inspectPort?: number
 }
 

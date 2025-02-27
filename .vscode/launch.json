@@ -23,6 +23,12 @@
             "type": "node-terminal"
         },
         {
+            "command": "npm run add_test",
+            "name": "npm run add_test",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "光启动不编译",

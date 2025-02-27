@@ -1,35 +1,21 @@
-class LauncherOption implements ILauncherOption {
+import { CommonUtils } from "./CommonUtils";
+
+export class LauncherOption implements IServerConfig {
 
     nodeId: string;
     port: number
     env: string;
     serverType: string;
-    autuResume: boolean;
-    logTrace: boolean;
-    rpcBulkSize?: number;
-    rpcBulkTime?: number;
 
-    constructor() {
-        const args = process.argv.splice(2);
-        for (let index = 0; index < args.length; index++) {
-            const arg = args[index];
-            const kvInfo = arg.split('=');
-            const key: string = kvInfo[0];
-            let value: string | number = kvInfo[1];
-            this[key] = this.tryGetValue(value);
-        }
+    autuResume: boolean = false;
+    logTrace: boolean = false;
+    logLevel: string = 'All';
+    rpcBulkSize: number = 100;
+    rpcBulkTime: number = 10;
 
+    constructor(args: string[]) {
+        CommonUtils.getParams(args, this);
         global.nodeId = this.nodeId;
         global.env = this.env;
     }
-
-    private tryGetValue(value: string) {
-        if (value === 'true' || value === 'false') {
-            return value === 'true';
-        }
-
-        const num = parseInt(value, 10);
-        return Number.isNaN(num) ? value : num;
-    }
 }
-export const launcherOption = new LauncherOption();

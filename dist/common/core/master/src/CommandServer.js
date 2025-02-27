@@ -46,6 +46,9 @@ class CommonServer {
         else if (req.url.startsWith('/restart')) {
             this.restart(req, res, data);
         }
+        else if (req.url.startsWith('/add')) {
+            this.add(req, res, data);
+        }
         else {
             res.write('unknow request');
         }
@@ -55,8 +58,7 @@ class CommonServer {
         res.write(result);
     }
     kill(req, res, data) {
-        var _a;
-        (_a = GlobalVar_1.GlobalVar.nodeMgr.serverMap.get(data.nodeId)) === null || _a === void 0 ? void 0 : _a.kill();
+        GlobalVar_1.GlobalVar.nodeMgr.kill(data.nodeId);
         res.statusCode = 200;
     }
     start(req, res, data) {
@@ -65,6 +67,10 @@ class CommonServer {
     }
     restart(req, res, data) {
         GlobalVar_1.GlobalVar.nodeMgr.restart(data.nodeId);
+        res.statusCode = 200;
+    }
+    add(req, res, data) {
+        GlobalVar_1.GlobalVar.nodeMgr.add(data.params);
         res.statusCode = 200;
     }
     restartAll(req, res, data) {

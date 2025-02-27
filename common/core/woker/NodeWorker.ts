@@ -5,7 +5,7 @@ export class NodeWorker extends BaseWorker {
 
     private _nodeMgr: NodeMgr;
 
-    constructor(serverConfig: ServerConfig, nodeMgr: NodeMgr) {
+    constructor(serverConfig: IServerConfig, nodeMgr: NodeMgr) {
         super(path.join(__dirname, '../server/ServerLauncher'), serverConfig);
         this.serverConfig = serverConfig;
         this._nodeMgr = nodeMgr;
@@ -17,6 +17,15 @@ export class NodeWorker extends BaseWorker {
         this.worker.on('exit', () => {
             this._nodeMgr.serverMap.delete(this.serverConfig.nodeId);
         });
+    }
+
+    /** 向node发送集群信息 */
+    notifyClusterInfo() {
+        const info = [];
+        this._nodeMgr.serverMap.forEach((nodeWorker, nodeId) => {
+            info.push({ nodeId, serverConfig: nodeWorker.serverConfig });
+        });
+        this.sendMessage({ event: 'clusterInfo', info })
     }
 
     kill(): void {

@@ -2,12 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseWorker = void 0;
 const ChildProcess = require("child_process");
-const EventEmitter = require("events");
 const CommonUtils_1 = require("../../CommonUtils");
-class BaseWorker extends EventEmitter {
+class BaseWorker {
     get pid() { var _a; return (_a = this.worker) === null || _a === void 0 ? void 0 : _a.pid; }
     constructor(execPath, serverConfig) {
-        super();
         this._execPath = execPath;
         this.serverConfig = serverConfig;
     }
@@ -52,7 +50,7 @@ class BaseWorker extends EventEmitter {
     onMessage(message) {
         logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${message}`);
         if (message.event) {
-            this.emit(message.event, message.data);
+            this.worker.emit(message.event, message.data);
         }
     }
     sendMessage(message) {
@@ -94,8 +92,8 @@ class BaseWorker extends EventEmitter {
         let timer;
         return Promise.race([
             new Promise((resolve) => {
-                node.sendMessage('getChildInfo');
-                node.once('getChildInfo', (data) => {
+                node.sendMessage({ event: 'getChildInfo' });
+                node.worker.once('childInfo', (data) => {
                     if (timer) {
                         clearTimeout(timer);
                     }

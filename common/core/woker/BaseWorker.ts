@@ -1,18 +1,16 @@
 import * as ChildProcess from 'child_process';
-import EventEmitter = require('events');
 import { CommonUtils } from '../../CommonUtils';
-export class BaseWorker extends EventEmitter {
+export class BaseWorker {
 
     protected _execPath: string;
     private _options: ChildProcess.ForkOptions;
 
-    serverConfig: ServerConfig;
+    serverConfig: IServerConfig;
     worker: ChildProcess.ChildProcess;
 
     get pid() { return this.worker?.pid }
 
-    constructor(execPath: string, serverConfig: ServerConfig) {
-        super();
+    constructor(execPath: string, serverConfig: IServerConfig) {
         this._execPath = execPath;
         this.serverConfig = serverConfig;
     }
@@ -36,7 +34,7 @@ export class BaseWorker extends EventEmitter {
         }
     }
 
-    restart(serverConfig: ServerConfig) {
+    restart(serverConfig: IServerConfig) {
         if (serverConfig !== this.serverConfig) {
             this.serverConfig = serverConfig;
         }
@@ -63,7 +61,7 @@ export class BaseWorker extends EventEmitter {
     onMessage(message: any) {
         logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${message}`);
         if (message.event) {
-            this.emit(message.event, message.data);
+            this.worker.emit(message.event, message.data);
         }
     }
 
@@ -110,8 +108,8 @@ export class BaseWorker extends EventEmitter {
         let timer: NodeJS.Timeout;
         return Promise.race([
             new Promise((resolve) => {
-                node.sendMessage('getChildInfo');
-                node.once('getChildInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
+                node.sendMessage({ event: 'getChildInfo' });
+                node.worker.once('childInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
                     if (timer) { clearTimeout(timer); }
                     data.pid = node.pid;
                     resolve(data);

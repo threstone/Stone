@@ -3,8 +3,8 @@ import * as WS from "ws"
 export class RpcSession {
     private _socket: WS;
     isInit: boolean;
-    serverType?: string;
-    nodeId?: string;
+    serverType: string;
+    nodeId: string;
 
     private _isCahce: boolean = false;
     private _cacheMsgs: string[];

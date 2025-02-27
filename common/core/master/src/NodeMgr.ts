@@ -2,21 +2,32 @@ import * as ChildProcess from 'child_process';
 import { NodeWorker } from '../../woker/NodeWorker';
 import { RpcManager } from '../../rpc/RpcManager';
 import { CommonUtils } from '../../../CommonUtils';
+import { ServersConfigMgr } from '../../server/ServersConfigMgr';
+import { LauncherOption } from '../../../LauncherOption';
 export class NodeMgr {
+
     public serverMap: Map<string, NodeWorker>;
 
     constructor() {
         this.serverMap = new Map<string, NodeWorker>();
-        // const setFun = this.serverMap.set.bind(this.serverMap);
-        // const deleteFun = this.serverMap.delete.bind(this.serverMap);
-        // this.serverMap.set = (k, v) => {
-        //     console.log('set');
-        //     return setFun(k, v);
-        // };
-        // this.serverMap.delete = (k) => {
-        //     console.log('delete');
-        //     return deleteFun(k);
-        // };
+        const setFun = this.serverMap.set.bind(this.serverMap);
+        const deleteFun = this.serverMap.delete.bind(this.serverMap);
+        this.serverMap.set = (k, v) => {
+            const res = setFun(k, v);
+            this.notifyNodeClusterUpdate();
+            return res;
+        };
+        this.serverMap.delete = (k) => {
+            const res = deleteFun(k);
+            this.notifyNodeClusterUpdate();
+            return res;
+        };
+    }
+
+    private notifyNodeClusterUpdate() {
+        this.serverMap.forEach((node) => {
+            node.notifyClusterInfo();
+        })
     }
 
     public async getServerInfo() {
@@ -89,6 +100,7 @@ export class NodeMgr {
         }
         const serverConf = serversConfigMap.get(nodeId);
         if (!serverConf) {
+            logger.error(`start node fail,serverConfig not found ${nodeId}`)
             return;
         }
         this.startNode(serverConf);
@@ -102,13 +114,17 @@ export class NodeMgr {
         });
     }
 
-    private startNode(serverConf: ServerConfig) {
+    private startNode(serverConf: IServerConfig) {
         const node = new NodeWorker(serverConf, this);
         let options: ChildProcess.ForkOptions = {};
         if (typeof serverConf.inspectPort === 'number') {
             options.execArgv = [`--inspect=${serverConf.inspectPort}`]
         }
         node.fork(options);
+    }
+
+    public kill(nodeId: string) {
+        this.serverMap.get(nodeId)?.kill();
     }
 
     public restart(nodeId: string) {
@@ -127,6 +143,26 @@ export class NodeMgr {
                 this.restart(nodeId);
             });
         })
+    }
+
+    public add(params: string[]) {
+        const param = new LauncherOption(params);
+        if (!param.nodeId || !param.serverType) {
+            logger.error(`add node fail,nodeId or serverType not found ${JSON.stringify(param)}`);
+            return;
+        }
+        if (this.serverMap.has(param.nodeId)) {
+            logger.error(`add node fail,node already exists : ${param.nodeId}`);
+            return;
+        }
+        if (!ServersConfigMgr.getAllServerTypes().has(param.serverType)) {
+            logger.error(`add node fail,unkonw serverType : ${param.serverType}`);
+            return;
+        }
+
+        param.env = startupParam.env;
+        serversConfigMap.set(param.nodeId, param);
+        this.startServer(param.nodeId);
     }
 
     private getWeight(name: string) {

@@ -11,7 +11,7 @@ export class ServersConfigMgr {
     }
 
     static ininConfigMap(configs: any) {
-        global.serversConfigMap = new Map<string, ServerConfig>();
+        global.serversConfigMap = new Map<string, IServerConfig>();
         const env = startupParam.env;
         const serversConfigs = configs[env];
         if (!serversConfigs) {
@@ -30,21 +30,34 @@ export class ServersConfigMgr {
             }
 
             for (let i = 0; i < serverConfig.length; i++) {
-                const serverConf: ServerConfig = serverConfig[i];
+                const serverConf: IServerConfig = serverConfig[i];
                 serverConf.env = env;
                 serverConf.serverType = serverName;
                 serversConfigMap.set(serverConf.nodeId, serverConf);
             }
         }
+
+        // 如果静态配置中没有,则可能是动态添加的服务,将启动参数作为服务器配置添加到配置Map中
+        if (!serversConfigMap.has(nodeId)) {
+            serversConfigMap.set(nodeId, startupParam)
+        }
     }
 
     static getServersByType(type: string) {
-        const result: ServerConfig[] = [];
+        const result: IServerConfig[] = [];
         serversConfigMap.forEach((config) => {
             if (config.serverType === type) {
                 result.push(config)
             }
         });
         return result;
+    }
+
+    static getAllServerTypes() {
+        const set = new Set<string>();
+        serversConfigMap.forEach((config) => {
+            set.add(config.serverType);
+        });
+        return set;
     }
 }

@@ -1,11 +1,11 @@
-export enum StoneEvent{
+export enum StoneEvent {
     /** 成功链接到RPC服务器 */
     RpcServerConnected = 'RpcServerConnected',
-    // /** servers配置更新 */
-    // ServersConfigUpdate = 'ServersConfigUpdate'
+    /** 集群状态更新 */
+    ClusterStatusUpdate = 'ClusterStatusUpdate'
 }
 
-export enum RpcRouteType{
+export enum RpcRouteType {
     Random,
     Target,
     All,

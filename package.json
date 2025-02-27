@@ -1,6 +1,6 @@
 {
   "name": "stone-framework",
-  "version": "1.0.55",
+  "version": "2.0.0",
   "description": "Node.js + Typescript server framework",
   "main": "./dist/index.js",
   "bin": {
@@ -12,6 +12,7 @@
     "start": "stone startAll prod -b",
     "stop": "stone stopAll prod",
     "list": "stone list prod",
+    "add_test": "stone -e dev add serverType=template nodeId=template3",
     "updateRpcDesc": "echo 生成并更新rpc类型描述文件 && stone updateRpcDesc"
   },
   "author": "threstone",

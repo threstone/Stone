@@ -27,7 +27,7 @@ function handleCmd() {
             args.splice(index, 1);
         }
     }
-    const cmdList = ['startall', 'stopall', 'list', 'kill', 'start', 'restart', 'restartall', 'updaterpcdesc', 'init'];
+    const cmdList = ['startall', 'stopall', 'list', 'kill', 'start', 'restart', 'restartall', 'updaterpcdesc', 'init', 'add'];
     const argv = args.shift().toLowerCase();
     const index = cmdList.indexOf(argv);
     if (index !== -1) {
@@ -91,6 +91,10 @@ function restartall(environmentArgs) {
     environment = environmentArgs || environment;
     sendCMD('restartAll');
 }
+/** 动态添加一个进程到集群 */
+function add(...environmentArgs) {
+    sendCMD('add', JSON.stringify({ params: environmentArgs }));
+}
 /** 生成并更新rpc类型描述文件 */
 async function updaterpcdesc() {
     let scriptPath = path.join(__dirname, '../core/rpc/RpcManager.js');
@@ -114,18 +118,24 @@ Options:
 
 Commands:
     
-    stone init                     在当前目录下创建模板工程(脚手架命令)     eg: stone init
-    stone startAll [environment]   启动服务                                 eg: stone startAll dev
-    stone stopAll [environment]    停止所有进程                             eg: stone stopAll dev
-    stone list [environment]       展示所有进程                             eg: stone list dev
-    stone kill [nodeId]            杀死指定进程                             eg: stone -e dev kill Hall1
-    stone start [nodeId]           启动指定进程                             eg: stone -e dev start Hall1
-    stone restart [nodeId]         重新启动指定进程                         eg: stone -e dev restart Hall1
-    stone restartAll [environment] 重新启动所有进程                         eg: stone -e dev restartAll Hall1
-    stone updateRpcDesc            生成并更新rpc类型描述文件                eg: stone updateRpcDesc
+    stone init                     在当前目录下创建模板工程(脚手架命令)                         eg: stone init
+    stone startAll [environment]   启动服务                                                     eg: stone startAll dev
+    stone stopAll [environment]    停止所有进程                                                 eg: stone stopAll dev
+    stone list [environment]       展示所有进程                                                 eg: stone list dev
+    stone restartAll [environment] 重新启动所有运行中的进程                                     eg: stone restartAll 
+
+    stone kill [nodeId]            杀死指定进程                                                 eg: stone -e dev kill template1
+    stone start [nodeId]           启动指定进程(需要servers.json中有配置,或是曾add过的node)     eg: stone -e dev start template1
+    stone restart [nodeId]         重新启动运行中的指定进程                                     eg: stone -e dev restart template1
+    stone add [server params]      动态添加一个进程到集群(至少指定serverType和nodeId)           eg: stone -e dev add serverType=template nodeId=template3
+    stone updateRpcDesc            生成并更新rpc类型描述文件                                    eg: stone updateRpcDesc
         `);
 }
 function sendCMD(cmd, dataStr) {
+    if (!environment) {
+        console.log('请指定环境参数:-e ${environment}\n例如:stone -e dev kill template1');
+        return;
+    }
     return new Promise((resolve, reject) => {
         const servers = require(path.join(process.cwd(), '/config/servers.json'));
         const config = servers[environment].master;

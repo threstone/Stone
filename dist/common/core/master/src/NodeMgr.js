@@ -4,19 +4,28 @@ exports.NodeMgr = void 0;
 const NodeWorker_1 = require("../../woker/NodeWorker");
 const RpcManager_1 = require("../../rpc/RpcManager");
 const CommonUtils_1 = require("../../../CommonUtils");
+const ServersConfigMgr_1 = require("../../server/ServersConfigMgr");
+const LauncherOption_1 = require("../../../LauncherOption");
 class NodeMgr {
     constructor() {
         this.serverMap = new Map();
-        // const setFun = this.serverMap.set.bind(this.serverMap);
-        // const deleteFun = this.serverMap.delete.bind(this.serverMap);
-        // this.serverMap.set = (k, v) => {
-        //     console.log('set');
-        //     return setFun(k, v);
-        // };
-        // this.serverMap.delete = (k) => {
-        //     console.log('delete');
-        //     return deleteFun(k);
-        // };
+        const setFun = this.serverMap.set.bind(this.serverMap);
+        const deleteFun = this.serverMap.delete.bind(this.serverMap);
+        this.serverMap.set = (k, v) => {
+            const res = setFun(k, v);
+            this.notifyNodeClusterUpdate();
+            return res;
+        };
+        this.serverMap.delete = (k) => {
+            const res = deleteFun(k);
+            this.notifyNodeClusterUpdate();
+            return res;
+        };
+    }
+    notifyNodeClusterUpdate() {
+        this.serverMap.forEach((node) => {
+            node.notifyClusterInfo();
+        });
     }
     async getServerInfo() {
         const maxLens = {
@@ -76,6 +85,7 @@ class NodeMgr {
         }
         const serverConf = serversConfigMap.get(nodeId);
         if (!serverConf) {
+            logger.error(`start node fail,serverConfig not found ${nodeId}`);
             return;
         }
         this.startNode(serverConf);
@@ -95,6 +105,10 @@ class NodeMgr {
         }
         node.fork(options);
     }
+    kill(nodeId) {
+        var _a;
+        (_a = this.serverMap.get(nodeId)) === null || _a === void 0 ? void 0 : _a.kill();
+    }
     restart(nodeId) {
         const node = this.serverMap.get(nodeId);
         const serverConfig = serversConfigMap.get(nodeId);
@@ -110,6 +124,24 @@ class NodeMgr {
                 this.restart(nodeId);
             });
         });
+    }
+    add(params) {
+        const param = new LauncherOption_1.LauncherOption(params);
+        if (!param.nodeId || !param.serverType) {
+            logger.error(`add node fail,nodeId or serverType not found ${JSON.stringify(param)}`);
+            return;
+        }
+        if (this.serverMap.has(param.nodeId)) {
+            logger.error(`add node fail,node already exists : ${param.nodeId}`);
+            return;
+        }
+        if (!ServersConfigMgr_1.ServersConfigMgr.getAllServerTypes().has(param.serverType)) {
+            logger.error(`add node fail,unkonw serverType : ${param.serverType}`);
+            return;
+        }
+        param.env = startupParam.env;
+        serversConfigMap.set(param.nodeId, param);
+        this.startServer(param.nodeId);
     }
     getWeight(name) {
         if (name === 'master') {

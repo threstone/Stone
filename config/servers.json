@@ -10,9 +10,15 @@
             "rpcBulkTime": 10,
             "isCreateRpcDeclare": true
         },
-        "server_template": [
+        "template": [
             {
-                "nodeId": "server_template1",
+                "nodeId": "template1",
+                "autuResume": true,
+                "logTrace": true,
+                "logLevel": "ALL"
+            },
+            {
+                "nodeId": "template2",
                 "autuResume": true,
                 "logTrace": true,
                 "logLevel": "ALL"

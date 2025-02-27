@@ -28,4 +28,25 @@ export class CommonUtils {
     static formatMemory(bytes: number) {
         return (bytes / 1024 / 1024).toFixed(2);
     }
+
+    static getParams(params: string[], target?: any) {
+        const result = target || {};
+        for (let index = 0; index < params.length; index++) {
+            const arg = params[index];
+            const kvInfo = arg.split('=');
+            const key: string = kvInfo[0];
+            const value: string | number = kvInfo[1];
+            result[key] = CommonUtils.tryGetStartParamValue(value);
+        }
+        return result;
+    }
+
+    static tryGetStartParamValue(value: string) {
+        if (value === 'true' || value === 'false') {
+            return value === 'true';
+        }
+
+        const num = parseInt(value, 10);
+        return Number.isNaN(num) ? value : num;
+    }
 }

@@ -1,26 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.launcherOption = void 0;
+exports.LauncherOption = void 0;
+const CommonUtils_1 = require("./CommonUtils");
 class LauncherOption {
-    constructor() {
-        const args = process.argv.splice(2);
-        for (let index = 0; index < args.length; index++) {
-            const arg = args[index];
-            const kvInfo = arg.split('=');
-            const key = kvInfo[0];
-            let value = kvInfo[1];
-            this[key] = this.tryGetValue(value);
-        }
+    constructor(args) {
+        this.autuResume = false;
+        this.logTrace = false;
+        this.logLevel = 'All';
+        this.rpcBulkSize = 100;
+        this.rpcBulkTime = 10;
+        CommonUtils_1.CommonUtils.getParams(args, this);
         global.nodeId = this.nodeId;
         global.env = this.env;
     }
-    tryGetValue(value) {
-        if (value === 'true' || value === 'false') {
-            return value === 'true';
-        }
-        const num = parseInt(value, 10);
-        return Number.isNaN(num) ? value : num;
-    }
 }
-exports.launcherOption = new LauncherOption();
+exports.LauncherOption = LauncherOption;
 //# sourceMappingURL=LauncherOption.js.map

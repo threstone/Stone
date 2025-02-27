@@ -33,6 +33,10 @@ class ServersConfigMgr {
                 serversConfigMap.set(serverConf.nodeId, serverConf);
             }
         }
+        // 如果静态配置中没有,则可能是动态添加的服务,将启动参数作为服务器配置添加到配置Map中
+        if (!serversConfigMap.has(nodeId)) {
+            serversConfigMap.set(nodeId, startupParam);
+        }
     }
     static getServersByType(type) {
         const result = [];
@@ -42,6 +46,13 @@ class ServersConfigMgr {
             }
         });
         return result;
+    }
+    static getAllServerTypes() {
+        const set = new Set();
+        serversConfigMap.forEach((config) => {
+            set.add(config.serverType);
+        });
+        return set;
     }
 }
 exports.ServersConfigMgr = ServersConfigMgr;

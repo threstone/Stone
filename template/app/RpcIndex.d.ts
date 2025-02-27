@@ -5,14 +5,14 @@ declare interface RpcRouterOptions {
 }
         
 declare class rpc {
-    static server_template: typeof Server_template;
+    static template: typeof Template;
 }
 
-declare class Server_template {
-    static demoRemote: typeof Server_template_DemoRemote;
+declare class Template {
+    static demoRemote: typeof Template_DemoRemote;
 }
 
-declare class Server_template_DemoRemote {
+declare class Template_DemoRemote {
     static callLog(routeOption: RpcRouterOptions, str: string): Promise<string>;
     static sendLog(routeOption: RpcRouterOptions, str: string): void;
     static callDelayLog(routeOption: RpcRouterOptions, str: string, delayTime: number): Promise<string>;

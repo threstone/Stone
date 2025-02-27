@@ -1,16 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServerInit = void 0;
-const LauncherOption_1 = require("../../LauncherOption");
 const ServersConfigMgr_1 = require("./ServersConfigMgr");
 const RpcManager_1 = require("../rpc/RpcManager");
 const events_1 = require("events");
 const log4js_1 = require("log4js");
+const ClusterStateMgr_1 = require("./ClusterStateMgr");
+const LauncherOption_1 = require("../../LauncherOption");
 let exceptionLogger = console;
 class ServerInit {
     static init() {
         // 初始化启动参数
-        global.startupParam = LauncherOption_1.launcherOption;
+        global.startupParam = new LauncherOption_1.LauncherOption(process.argv.splice(2));
         // 初始化全局事件对象
         global.eventEmitter = new events_1.EventEmitter();
         // 初始化进程事件
@@ -19,6 +20,8 @@ class ServerInit {
         ServerInit.initLogger();
         // 初始化service config manager
         ServersConfigMgr_1.ServersConfigMgr.init();
+        // 集群状态管理器
+        ClusterStateMgr_1.ClusterStateMgr.init();
         // RPC模块初始化
         RpcManager_1.RpcManager.init();
     }
@@ -29,15 +32,8 @@ class ServerInit {
         process.on('unhandledRejection', (reason, promise) => {
             exceptionLogger.error('Unhandled Rejection at:', promise, 'reason:', reason);
         });
-        process.on('message', (message) => {
-            if (message === 'getChildInfo') {
-                const memoryUsage = process.memoryUsage();
-                process.send({ event: 'getChildInfo', data: { memoryUsage, uptime: process.uptime() } });
-            }
-        });
     }
     static initLogger() {
-        var _a, _b;
         const s = startupParam;
         const nodeId = (startupParam === null || startupParam === void 0 ? void 0 : startupParam.nodeId) || 'app';
         const pattern = s.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]';
@@ -82,7 +78,7 @@ class ServerInit {
                         "debug"
                     ],
                     "level": s.logLevel || 'ALL',
-                    "enableCallStack": (_a = s.logTrace) !== null && _a !== void 0 ? _a : false
+                    "enableCallStack": s.logTrace
                 },
                 [nodeId + ' error']: {
                     "appenders": [
@@ -90,7 +86,7 @@ class ServerInit {
                         "err"
                     ],
                     "level": "error",
-                    "enableCallStack": (_b = s.logTrace) !== null && _b !== void 0 ? _b : false
+                    "enableCallStack": s.logTrace
                 }
             }
         };

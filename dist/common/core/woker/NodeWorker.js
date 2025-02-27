@@ -16,6 +16,14 @@ class NodeWorker extends BaseWorker_1.BaseWorker {
             this._nodeMgr.serverMap.delete(this.serverConfig.nodeId);
         });
     }
+    /** 向node发送集群信息 */
+    notifyClusterInfo() {
+        const info = [];
+        this._nodeMgr.serverMap.forEach((nodeWorker, nodeId) => {
+            info.push({ nodeId, serverConfig: nodeWorker.serverConfig });
+        });
+        this.sendMessage({ event: 'clusterInfo', info });
+    }
     kill() {
         super.kill();
         this._nodeMgr.serverMap.delete(this.serverConfig.nodeId);

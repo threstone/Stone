@@ -1,14 +1,15 @@
-import { launcherOption } from "../../LauncherOption";
 import { ServersConfigMgr } from "./ServersConfigMgr";
 import { RpcManager } from "../rpc/RpcManager";
 import { EventEmitter } from 'events';
 import { configure, getLogger } from 'log4js';
+import { ClusterStateMgr } from "./ClusterStateMgr";
+import { LauncherOption } from "../../LauncherOption";
 
 let exceptionLogger: ILog = console as any;
 export class ServerInit {
     static init() {
         // 初始化启动参数
-        global.startupParam = launcherOption;
+        global.startupParam = new LauncherOption(process.argv.splice(2));
         // 初始化全局事件对象
         global.eventEmitter = new EventEmitter();
 
@@ -18,6 +19,8 @@ export class ServerInit {
         ServerInit.initLogger();
         // 初始化service config manager
         ServersConfigMgr.init();
+        // 集群状态管理器
+        (ClusterStateMgr as any).init();
         // RPC模块初始化
         RpcManager.init();
     }
@@ -29,13 +32,6 @@ export class ServerInit {
 
         process.on('unhandledRejection', (reason, promise) => {
             exceptionLogger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-        });
-
-        process.on('message', (message) => {
-            if (message === 'getChildInfo') {
-                const memoryUsage = process.memoryUsage();
-                process.send({ event: 'getChildInfo', data: { memoryUsage, uptime: process.uptime() } });
-            }
         });
     }
 
@@ -84,7 +80,7 @@ export class ServerInit {
                         "debug"
                     ],
                     "level": s.logLevel || 'ALL',
-                    "enableCallStack": s.logTrace ?? false
+                    "enableCallStack": s.logTrace
                 },
                 [nodeId + ' error']: {
                     "appenders": [
@@ -92,7 +88,7 @@ export class ServerInit {
                         "err"
                     ],
                     "level": "error",
-                    "enableCallStack": s.logTrace ?? false
+                    "enableCallStack": s.logTrace
                 }
             }
         };

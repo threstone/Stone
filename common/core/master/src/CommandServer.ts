@@ -39,6 +39,8 @@ export class CommonServer {
             this.stopAll(req, res, data);
         } else if (req.url.startsWith('/restart')) {
             this.restart(req, res, data);
+        } else if (req.url.startsWith('/add')) {
+            this.add(req, res, data);
         } else {
             res.write('unknow request')
         }
@@ -50,7 +52,7 @@ export class CommonServer {
     }
 
     private kill(req: http.IncomingMessage, res: http.ServerResponse, data: object) {
-        GlobalVar.nodeMgr.serverMap.get((data as any).nodeId)?.kill();
+        GlobalVar.nodeMgr.kill((data as any).nodeId);
         res.statusCode = 200;
     }
 
@@ -61,6 +63,11 @@ export class CommonServer {
 
     private restart(req: http.IncomingMessage, res: http.ServerResponse, data: object) {
         GlobalVar.nodeMgr.restart((data as any).nodeId);
+        res.statusCode = 200;
+    }
+
+    private add(req: http.IncomingMessage, res: http.ServerResponse, data: object) {
+        GlobalVar.nodeMgr.add((data as any).params);
         res.statusCode = 200;
     }
 

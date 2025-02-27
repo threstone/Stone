@@ -67,8 +67,6 @@ export class RpcManager {
                 autuResume: true,
                 serverType: 'RPC',
                 env,
-                rpcBulkSize: serverConfig.rpcBulkSize ?? 100,
-                rpcBulkTime: serverConfig.rpcBulkTime ?? 10,
             });
             this._serverWorker.push(worker);
             worker.fork();

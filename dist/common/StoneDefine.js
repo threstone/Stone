@@ -5,8 +5,8 @@ var StoneEvent;
 (function (StoneEvent) {
     /** 成功链接到RPC服务器 */
     StoneEvent["RpcServerConnected"] = "RpcServerConnected";
-    // /** servers配置更新 */
-    // ServersConfigUpdate = 'ServersConfigUpdate'
+    /** 集群状态更新 */
+    StoneEvent["ClusterStatusUpdate"] = "ClusterStatusUpdate";
 })(StoneEvent || (exports.StoneEvent = StoneEvent = {}));
 var RpcRouteType;
 (function (RpcRouteType) {
