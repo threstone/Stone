@@ -5,5 +5,5 @@ const ClusterStateMgr_1 = require("./common/core/server/ClusterStateMgr");
 const StoneDefine_1 = require("./common/StoneDefine");
 exports.RpcRouteType = StoneDefine_1.RpcRouteType;
 exports.StoneEvent = StoneDefine_1.StoneEvent;
-exports.getClusterInfo = ClusterStateMgr_1.ClusterStateMgr.getClusterInfo;
+exports.getClusterInfo = ClusterStateMgr_1.ClusterStateMgr.getClusterInfo.bind(ClusterStateMgr_1.ClusterStateMgr);
 //# sourceMappingURL=index.js.map
