@@ -8,6 +8,7 @@ export class ClusterStateMgr {
             return;
         }
         this.serverMap = new Map();
+        global.getClusterInfo = this.getClusterInfo.bind(this);
 
         const eventMap = new Map([
             ['getChildInfo', this.getChildInfo.bind(this)],

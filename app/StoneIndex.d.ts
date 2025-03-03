@@ -10,6 +10,8 @@ declare var serverConfig: IServerConfig;
 declare var eventEmitter: NodeJS.EventEmitter;
 /** 全局logger */
 declare var logger: ILog;
+/** 获取集群信息,未启动的服务不会在map中 */
+declare function getClusterInfo(): readonly Map<string, IServerConfig>;
 
 /** servers.json配置定义 */
 declare interface IServerConfig {
