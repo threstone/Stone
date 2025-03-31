@@ -84,7 +84,6 @@ export class ServerInit {
                 },
                 [nodeId + ' error']: {
                     "appenders": [
-                        "console",
                         "err"
                     ],
                     "level": "error",
@@ -95,7 +94,11 @@ export class ServerInit {
         configure(loggerConfig);
         global.logger = getLogger(nodeId);
         const errLogger = getLogger(nodeId + ' error');
-        logger.error = errLogger.error.bind(errLogger);
+        const saveError = logger.error;
+        logger.error = (message: any, ...args: any[]) => {
+            errLogger.error(message, ...args);
+            saveError.call(logger, message, ...args);
+        };
         exceptionLogger = logger;
     }
 }
