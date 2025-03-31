@@ -2,8 +2,10 @@ import { StoneEvent } from "../../StoneDefine";
 
 /** 用来查看集群状态的管理器 */
 export class ClusterStateMgr {
+
     private static serverMap: Map<string, IServerConfig>;
-    private static init() {
+
+    static init() {
         if (startupParam.nodeId === 'master') {
             return;
         }

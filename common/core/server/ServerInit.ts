@@ -20,7 +20,7 @@ export class ServerInit {
         // 初始化service config manager
         ServersConfigMgr.init();
         // 集群状态管理器
-        (ClusterStateMgr as any).init();
+        ClusterStateMgr.init();
         // RPC模块初始化
         RpcManager.init();
     }
