@@ -107,11 +107,13 @@ export class NodeMgr {
     }
 
     public startServers() {
-        serversConfigMap.forEach((serverConf) => {
-            if (serverConf.serverType !== 'master') {
-                this.startNode(serverConf);
-            }
-        });
+        setTimeout(() => {
+            serversConfigMap.forEach((serverConf) => {
+                if (serverConf.serverType !== 'master') {
+                    this.startNode(serverConf);
+                }
+            });
+        }, 1000);
     }
 
     private startNode(serverConf: IServerConfig) {

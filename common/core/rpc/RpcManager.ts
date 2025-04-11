@@ -78,6 +78,9 @@ export class RpcManager {
         if (this.isServer() === false) {
             return;
         }
+        if (serverConfig.serverType === 'RPC') {
+            return;
+        }
         this._clients = [];
         const config = serversConfigMap.get('master');
         const rpcPorts = config.rpcPorts;

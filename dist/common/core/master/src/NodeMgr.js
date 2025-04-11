@@ -91,11 +91,13 @@ class NodeMgr {
         this.startNode(serverConf);
     }
     startServers() {
-        serversConfigMap.forEach((serverConf) => {
-            if (serverConf.serverType !== 'master') {
-                this.startNode(serverConf);
-            }
-        });
+        setTimeout(() => {
+            serversConfigMap.forEach((serverConf) => {
+                if (serverConf.serverType !== 'master') {
+                    this.startNode(serverConf);
+                }
+            });
+        }, 1000);
     }
     startNode(serverConf) {
         const node = new NodeWorker_1.NodeWorker(serverConf, this);
