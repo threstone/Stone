@@ -23,6 +23,7 @@ class ServersConfigMgr {
             const serverConfig = serversConfigs[serverName];
             if (!Array.isArray(serverConfig)) {
                 serverConfig.serverType = serverName;
+                serverConfig.env = env;
                 serversConfigMap.set(serverName, serverConfig);
                 continue;
             }

@@ -135,8 +135,8 @@ template的目录如下:
 其中`rpcPorts` `rpcBulkSize` `rpcBulkTime` `isCreateRpcDeclare`为master专用配置,在其他地方定义无效,详细意义查看`StoneIndex.ts`中的注释。
 
 接下来`template`为servers中新建的服务,名称必须一一对应,而`template`的值为一个
-数组,其中有多少个元素,就会启动多少个`template`实例,并且元素内的所有内容都将被作为启动参数
-带入服务。自定义服务的值都必须为数组。
+数组或者单个对象,其中有多少个元素(单个对象即一个元素),就会启动多少个`template`实例,并且元素内的所有内容都将被作为启动参数
+带入服务。
 具体含义如下注释:
 ```json
 {
