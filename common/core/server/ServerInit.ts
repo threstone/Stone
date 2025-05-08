@@ -36,9 +36,8 @@ export class ServerInit {
     }
 
     private static initLogger() {
-        const s = startupParam as any;
         const nodeId = startupParam?.nodeId || 'app'
-        const pattern = s.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]'
+        const pattern = startupParam.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]'
         const loggerConfig = {
             "appenders": {
                 "console": {
@@ -76,21 +75,24 @@ export class ServerInit {
             "categories": {
                 "default": {
                     "appenders": [
-                        "console",
+                        // "console",
                         "debug"
                     ],
-                    "level": s.logLevel || 'ALL',
-                    "enableCallStack": s.logTrace
+                    "level": startupParam.logLevel || 'ALL',
+                    "enableCallStack": startupParam.logTrace
                 },
                 [nodeId + ' error']: {
                     "appenders": [
                         "err"
                     ],
                     "level": "error",
-                    "enableCallStack": s.logTrace
+                    "enableCallStack": startupParam.logTrace
                 }
             }
         };
+        if (startupParam.consoleLog) {
+            loggerConfig.categories.default.appenders.push('console');
+        }
         configure(loggerConfig);
         global.logger = getLogger(nodeId);
         const errLogger = getLogger(nodeId + ' error');

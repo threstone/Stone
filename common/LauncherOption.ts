@@ -10,6 +10,7 @@ export class LauncherOption implements IServerConfig {
     autuResume: boolean = false;
     logTrace: boolean = false;
     logLevel: string = 'All';
+    consoleLog: boolean = true;
     rpcBulkSize: number = 100;
     rpcBulkTime: number = 10;
 

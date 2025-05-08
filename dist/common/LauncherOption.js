@@ -7,6 +7,7 @@ class LauncherOption {
         this.autuResume = false;
         this.logTrace = false;
         this.logLevel = 'All';
+        this.consoleLog = true;
         this.rpcBulkSize = 100;
         this.rpcBulkTime = 10;
         CommonUtils_1.CommonUtils.getParams(args, this);

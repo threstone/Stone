@@ -34,9 +34,8 @@ class ServerInit {
         });
     }
     static initLogger() {
-        const s = startupParam;
         const nodeId = (startupParam === null || startupParam === void 0 ? void 0 : startupParam.nodeId) || 'app';
-        const pattern = s.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]';
+        const pattern = startupParam.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]';
         const loggerConfig = {
             "appenders": {
                 "console": {
@@ -74,21 +73,24 @@ class ServerInit {
             "categories": {
                 "default": {
                     "appenders": [
-                        "console",
+                        // "console",
                         "debug"
                     ],
-                    "level": s.logLevel || 'ALL',
-                    "enableCallStack": s.logTrace
+                    "level": startupParam.logLevel || 'ALL',
+                    "enableCallStack": startupParam.logTrace
                 },
                 [nodeId + ' error']: {
                     "appenders": [
                         "err"
                     ],
                     "level": "error",
-                    "enableCallStack": s.logTrace
+                    "enableCallStack": startupParam.logTrace
                 }
             }
         };
+        if (startupParam.consoleLog) {
+            loggerConfig.categories.default.appenders.push('console');
+        }
         (0, log4js_1.configure)(loggerConfig);
         global.logger = (0, log4js_1.getLogger)(nodeId);
         const errLogger = (0, log4js_1.getLogger)(nodeId + ' error');

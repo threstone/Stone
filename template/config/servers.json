@@ -16,6 +16,7 @@
                 "autuResume": true,
                 "logTrace": true,
                 "logLevel": "ALL",
+                "consoleLog": true,
                 "inspectPort": 9229
             },
             {
@@ -23,6 +24,7 @@
                 "autuResume": true,
                 "logTrace": true,
                 "logLevel": "ALL",
+                "consoleLog": true,
                 "inspectPort": 9230
             }
         ]

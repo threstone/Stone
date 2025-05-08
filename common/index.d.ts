@@ -34,10 +34,12 @@ declare interface IServerConfig {
     serverType?: string
     /** 异常重启,默认false */
     autuResume?: boolean
-    /** 是否输出堆栈信息,默认false */
+    /** 是否输出堆栈信息,默认false,此功能需要耗费一定性能,线上谨慎开启 */
     logTrace?: boolean
     /** 输出级别,默认All */
     logLevel?: string
+    /** 是否输出到控制台,默认true,此功能需要耗费一定性能,线上建议关闭,推荐通过读取日志查看日志而不是控制台 */
+    consoleLog?: boolean
     /** 调试端口,配置后会打开对应的端口以方便远程调试 */
     inspectPort?: number
 }

@@ -24,7 +24,7 @@ class ServersConfigMgr {
             if (!Array.isArray(serverConfig)) {
                 serverConfig.serverType = serverName;
                 serverConfig.env = env;
-                serversConfigMap.set(serverName, serverConfig);
+                serversConfigMap.set(serverConfig.nodeId || serverName, serverConfig);
                 continue;
             }
             for (let i = 0; i < serverConfig.length; i++) {
