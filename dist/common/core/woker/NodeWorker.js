@@ -17,11 +17,7 @@ class NodeWorker extends BaseWorker_1.BaseWorker {
         });
     }
     /** 向node发送集群信息 */
-    notifyClusterInfo() {
-        const info = [];
-        this._nodeMgr.serverMap.forEach((nodeWorker, nodeId) => {
-            info.push({ nodeId, serverConfig: nodeWorker.serverConfig });
-        });
+    notifyClusterInfo(info) {
         this.sendMessage({ event: 'clusterInfo', info });
     }
     kill() {

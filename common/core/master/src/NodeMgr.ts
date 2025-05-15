@@ -25,8 +25,12 @@ export class NodeMgr {
     }
 
     private notifyNodeClusterUpdate() {
+        const info = [];
+        this.serverMap.forEach((nodeWorker, nodeId) => {
+            info.push({ nodeId, serverConfig: nodeWorker.serverConfig });
+        });
         this.serverMap.forEach((node) => {
-            node.notifyClusterInfo();
+            node.notifyClusterInfo(info);
         })
     }
 
