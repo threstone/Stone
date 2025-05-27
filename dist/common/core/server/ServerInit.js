@@ -81,7 +81,8 @@ class ServerInit {
                 },
                 [nodeId + ' error']: {
                     "appenders": [
-                        "err"
+                        "err",
+                        "debug"
                     ],
                     "level": "error",
                     "enableCallStack": startupParam.logTrace
@@ -90,15 +91,12 @@ class ServerInit {
         };
         if (startupParam.consoleLog) {
             loggerConfig.categories.default.appenders.push('console');
+            loggerConfig.categories[nodeId + ' error'].appenders.push('console');
         }
         (0, log4js_1.configure)(loggerConfig);
         global.logger = (0, log4js_1.getLogger)(nodeId);
         const errLogger = (0, log4js_1.getLogger)(nodeId + ' error');
-        const saveError = logger.error;
-        logger.error = (message, ...args) => {
-            errLogger.error(message, ...args);
-            saveError.call(logger, message, ...args);
-        };
+        logger.error = errLogger.error.bind(errLogger);
         exceptionLogger = logger;
     }
 }

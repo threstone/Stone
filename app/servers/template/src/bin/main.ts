@@ -1,1 +1,1 @@
-logger.info('init...')
+logger.info('init...');

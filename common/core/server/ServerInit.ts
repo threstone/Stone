@@ -83,7 +83,8 @@ export class ServerInit {
                 },
                 [nodeId + ' error']: {
                     "appenders": [
-                        "err"
+                        "err",
+                        "debug"
                     ],
                     "level": "error",
                     "enableCallStack": startupParam.logTrace
@@ -92,15 +93,12 @@ export class ServerInit {
         };
         if (startupParam.consoleLog) {
             loggerConfig.categories.default.appenders.push('console');
+            loggerConfig.categories[nodeId + ' error'].appenders.push('console');
         }
         configure(loggerConfig);
         global.logger = getLogger(nodeId);
         const errLogger = getLogger(nodeId + ' error');
-        const saveError = logger.error;
-        logger.error = (message: any, ...args: any[]) => {
-            errLogger.error(message, ...args);
-            saveError.call(logger, message, ...args);
-        };
+        logger.error = errLogger.error.bind(errLogger);
         exceptionLogger = logger;
     }
 }
