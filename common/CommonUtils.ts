@@ -46,7 +46,7 @@ export class CommonUtils {
             return value === 'true';
         }
 
-        const num = parseInt(value, 10);
+        const num = Number(value);
         return Number.isNaN(num) ? value : num;
     }
 }

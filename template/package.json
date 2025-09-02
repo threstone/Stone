@@ -13,7 +13,7 @@
   "author": "author",
   "license": "ISC",
   "dependencies": {
-    "stone-framework": "^2.0.9"
+    "stone-framework": "^2.0.10"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
