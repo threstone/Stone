@@ -49,22 +49,26 @@ export class ServerInit {
                     }
                 },
                 "debug": {
-                    "type": "dateFile",
+                    "type": "file",
                     "filename": `./logs/${nodeId}`,
                     "alwaysIncludePattern": true,
                     "pattern": "log",
                     "maxLogSize": 1024 * 1024 * 100,
+                    "backups": 10,
+                    "compress": true,
                     "layout": {
                         "type": "pattern",
                         "pattern": `${pattern} %m`
                     }
                 },
                 "err": {
-                    "type": "dateFile",
+                    "type": "file",
                     "filename": `./logs/err`,
                     "alwaysIncludePattern": true,
                     "pattern": "log",//pattern": "yyyy-MM-dd.log",
                     "maxLogSize": 1024 * 1024 * 100,
+                    "backups": 10,
+                    "compress": true,
                     "layout": {
                         "type": "pattern",
                         "pattern": `${pattern} %m`
