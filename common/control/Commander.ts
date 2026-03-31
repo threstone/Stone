@@ -30,14 +30,17 @@ function handleCmd() {
             args.splice(index, 1);
         }
     }
-    const cmdList = ['startall', 'stopall', 'list', 'kill', 'start', 'restart', 'restartall', 'updaterpcdesc', 'init', 'add']
+    const cmdHandlers = {
+        startall, stopall, list, kill, start,
+        restart, restartall, updaterpcdesc, init, add
+    };
     const argv = args.shift().toLowerCase();
-    const index = cmdList.indexOf(argv);
-    if (index !== -1) {
-        eval(`${argv}.apply(this, args)`);
+    const handler = cmdHandlers[argv];
+    if (handler) {
+        handler(...args);
     } else {
-        console.error('未知命令,请参考如下帮助:');
         showHelp();
+        console.error('未知命令,请参考上方帮助');
     }
 }
 

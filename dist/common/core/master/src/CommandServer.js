@@ -9,6 +9,13 @@ class CommonServer {
         var _a;
         const port = ((_a = serversConfigMap.get('master')) === null || _a === void 0 ? void 0 : _a.port) || 1000;
         this._httpServer = http.createServer((req, res) => {
+            const remoteAddr = req.socket.remoteAddress;
+            if (remoteAddr !== '127.0.0.1' && remoteAddr !== '::1' && remoteAddr !== '::ffff:127.0.0.1') {
+                res.statusCode = 403;
+                res.end('Forbidden');
+                logger.warn(`CommandServer: rejected request from ${remoteAddr}`);
+                return;
+            }
             let datas;
             req.on('data', (d) => {
                 !datas && (datas = '');
@@ -24,8 +31,8 @@ class CommonServer {
                 await this.doHandle(req, res, body);
                 res.end();
             });
-        }).listen(port);
-        logger.debug(`start common server successfully, port:${port}`);
+        }).listen(port, '127.0.0.1');
+        logger.debug(`start common server successfully, port:${port} (localhost only)`);
     }
     async doHandle(req, res, data) {
         if (req.url.startsWith('/list')) {
