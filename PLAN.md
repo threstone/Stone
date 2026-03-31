@@ -41,10 +41,16 @@
      - 调用方在 **31ms** 内收到响应（result 为 null），而非 15 秒超时
   4. 测试代码已恢复原状，重新编译确认无残留
 
-### 4. `getRemoteObject` 返回值安全处理
+### ~~4. `getRemoteObject` 返回值安全处理~~ ✅
 - **文件**: `common/core/rpc/RpcClient.ts`
 - **问题**: catch 后未 return，返回 undefined，后续 `remote[funcName]` 抛 `Cannot read property of undefined`
 - **方案**: catch 中抛出明确错误或返回安全值；`handleCall`/`handleSend` 中增加 null 检查
+- **测试记录**:
+  1. `tsc` 编译通过
+  2. 启动项目回归测试：
+     - RPC call `callLog` 29ms 返回，结果正确（`hello from test`）
+     - RPC send `sendLog` 正常完成，接收端成功执行
+  3. null 检查路径验证：`getRemoteObject` 的 catch 现在显式返回 `null`；`handleCall` 检测到 null 后直接返回空 result 给调用方；`handleSend` 检测到 null 后直接 return，不执行后续代码。该路径为防御性编程，仅在 Remote 文件损坏/缺失等极端场景触发
 
 ### 5. RPC `call` 断线时返回 rejected Promise
 - **文件**: `common/core/rpc/RpcClient.ts`

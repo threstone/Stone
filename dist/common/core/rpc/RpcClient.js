@@ -20,6 +20,7 @@ class RpcClient {
         }
         catch (error) {
             logger.error(`无法找到Remote,${JSON.stringify(rpcMsg)}`);
+            return null;
         }
     }
     constructor(ip, port, bulk) {
@@ -123,6 +124,10 @@ class RpcClient {
             requestId: rpcMsg.requestId,
             result: null
         };
+        if (!remote) {
+            this._socket.send(RpcUtils_1.RpcUtils.encodeResult(replay));
+            return;
+        }
         try {
             replay.result = await remote[rpcMsg.funcName](...rpcMsg.args);
         }
@@ -133,6 +138,9 @@ class RpcClient {
     }
     handleSend(rpcMsg) {
         const remote = RpcClient.getRemoteObject(rpcMsg);
+        if (!remote) {
+            return;
+        }
         remote[rpcMsg.funcName](...rpcMsg.args);
     }
     call(serverName, className, funcName, routeOption, args) {

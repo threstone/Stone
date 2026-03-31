@@ -6,7 +6,7 @@ import { RpcManager } from "./RpcManager";
 export class RpcClient {
 
     private static _remoteMap = new Map<string, any>();
-    private static getRemoteObject(rpcMsg: RpcReqMsg): Function {
+    private static getRemoteObject(rpcMsg: RpcReqMsg): any {
         try {
             let remoteObject = this._remoteMap.get(rpcMsg.className);
             if (!remoteObject) {
@@ -19,6 +19,7 @@ export class RpcClient {
             return remoteObject;
         } catch (error) {
             logger.error(`无法找到Remote,${JSON.stringify(rpcMsg)}`);
+            return null;
         }
     }
 
@@ -136,6 +137,10 @@ export class RpcClient {
             requestId: rpcMsg.requestId,
             result: null
         };
+        if (!remote) {
+            this._socket.send(RpcUtils.encodeResult(replay));
+            return;
+        }
         try {
             replay.result = await remote[rpcMsg.funcName](...rpcMsg.args);
         } catch (error) {
@@ -146,6 +151,9 @@ export class RpcClient {
 
     private handleSend(rpcMsg: RpcReqMsg) {
         const remote = RpcClient.getRemoteObject(rpcMsg);
+        if (!remote) {
+            return;
+        }
         remote[rpcMsg.funcName](...rpcMsg.args);
     }
 
