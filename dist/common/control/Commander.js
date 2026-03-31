@@ -148,7 +148,7 @@ function sendCMD(cmd, dataStr) {
             hostname: config.ip,
             port: config.port,
             path: `/${cmd}`,
-            method: 'GET',
+            method: dataStr ? 'POST' : 'GET',
             headers: null
         };
         if (dataStr) {
