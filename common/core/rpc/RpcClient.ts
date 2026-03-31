@@ -136,7 +136,11 @@ export class RpcClient {
             requestId: rpcMsg.requestId,
             result: null
         };
-        replay.result = await remote[rpcMsg.funcName](...rpcMsg.args);
+        try {
+            replay.result = await remote[rpcMsg.funcName](...rpcMsg.args);
+        } catch (error) {
+            logger.error(`RPC call error: ${rpcMsg.className}.${rpcMsg.funcName}`, error);
+        }
         this._socket.send(RpcUtils.encodeResult(replay));
     }
 

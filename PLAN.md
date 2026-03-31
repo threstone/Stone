@@ -3,9 +3,9 @@
 > **流程要求**：
 > 1. 按优先级从上到下依次完成，每次只做一项
 > 2. 每项完成后必须自行测试（编译检查 + 实际启动项目运行验证），确保无误
-> 3. 测试通过后提交审核，等待确认"开始下一个"后才继续
-> 4. 确认"开始下一个"时，先将上一个任务的更改提交到 git，再开始新任务
-> 5. 已完成的任务标记 ~~删除线~~
+> 3. 测试通过后在文档中标记任务完成（~~删除线~~ ✅），并在任务后附加测试流程记录
+> 4. 提交审核，等待确认"开始下一个"后才继续
+> 5. 确认"开始下一个"时，先将上一个任务的更改提交到 git，再开始新任务
 
 ---
 
@@ -13,15 +13,33 @@
 
 ### ~~1. HTTP 控制接口增加鉴权~~ ✅ 已由作者完成（强制本地访问限制）
 
-### 2. HTTP 请求方法修正
+### ~~2. HTTP 请求方法修正~~ ✅
 - **文件**: `common/control/Commander.ts`
 - **问题**: `sendCMD` 中带 body 的请求（kill/start/add）使用 GET 方法，语义不符
 - **方案**: 有 body 时改用 POST，无 body 保持 GET
+- **测试记录**:
+  1. `tsc` 编译通过
+  2. 启动项目（`env=dev`），通过 HTTP 直接请求验证：
+     - `GET /list` → 200，正确返回进程列表
+     - `POST /kill {"nodeId":"template2"}` → 200，template2 被终止，list 确认消失
+     - `POST /start {"nodeId":"template2"}` → 200，template2 重新启动，list 确认恢复
+     - `POST /add {"params":["serverType=template","nodeId=template3"]}` → 200，template3 被添加
+  3. 通过 CLI 工具（`node dist/common/control/Commander.js`）验证 `sendCMD` 路径：
+     - `stone -e dev list` → 正常输出
+     - `stone -e dev kill template3` → template3 被终止
+     - `stone -e dev stopall` → 所有进程停止，服务关闭
 
-### 3. RPC call 异常传播
+### ~~3. RPC call 异常传播~~ ✅
 - **文件**: `common/core/rpc/RpcClient.ts`
 - **问题**: `handleCall` 中 `await remote[funcName](...args)` 无 try-catch，远程方法抛异常时调用方 Promise 永远 pending（15秒后超时）
 - **方案**: 增加 try-catch，异常时回传包含错误信息的结果给调用方
+- **测试记录**:
+  1. `tsc` 编译通过
+  2. 临时在 `DemoRemote` 添加 `throwError()` 方法（抛出异常），`main.ts` 中 template1 通过 RPC 调用该方法
+  3. 启动项目验证：
+     - 异常被 try-catch 捕获，日志输出 `RPC call error: DemoRemote.throwError` 及完整堆栈
+     - 调用方在 **31ms** 内收到响应（result 为 null），而非 15 秒超时
+  4. 测试代码已恢复原状，重新编译确认无残留
 
 ### 4. `getRemoteObject` 返回值安全处理
 - **文件**: `common/core/rpc/RpcClient.ts`
