@@ -18,4 +18,6 @@ declare interface RpcTransferResult {
     fromNodeId: string;
     result: any;
     requestId?: number;
+    /** 远端异常信息，非空时表示调用失败 */
+    error?: string;
 }

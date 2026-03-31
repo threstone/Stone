@@ -126,7 +126,11 @@ export class RpcClient {
         const requestCache = this._requestMap.get(rpcResult.requestId);
         if (!requestCache) return;
         this._requestMap.delete(rpcResult.requestId);
-        requestCache.resolve(rpcResult.result);
+        if (rpcResult.error) {
+            requestCache.reject(new Error(rpcResult.error));
+        } else {
+            requestCache.resolve(rpcResult.result);
+        }
     }
 
     private async handleCall(rpcMsg: RpcReqMsg) {
@@ -145,6 +149,7 @@ export class RpcClient {
             replay.result = await remote[rpcMsg.funcName](...rpcMsg.args);
         } catch (error) {
             logger.error(`RPC call error: ${rpcMsg.className}.${rpcMsg.funcName}`, error);
+            replay.error = error instanceof Error ? error.message : String(error);
         }
         this._socket.send(RpcUtils.encodeResult(replay));
     }
@@ -160,7 +165,7 @@ export class RpcClient {
     public call(serverName: string, className: string, funcName: string, routeOption: RpcRouterOptions, args?: any[]): Promise<any> {
         if (this.isClose) {
             logger.warn(`rpc${this._port} is not connected`);
-            return;
+            return Promise.reject(new Error(`rpc${this._port} is not connected`));
         }
         return new Promise((resolve, reject) => {
             const requestId = this._requestId++;

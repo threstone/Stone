@@ -52,15 +52,30 @@
      - RPC send `sendLog` 正常完成，接收端成功执行
   3. null 检查路径验证：`getRemoteObject` 的 catch 现在显式返回 `null`；`handleCall` 检测到 null 后直接返回空 result 给调用方；`handleSend` 检测到 null 后直接 return，不执行后续代码。该路径为防御性编程，仅在 Remote 文件损坏/缺失等极端场景触发
 
-### 5. RPC `call` 断线时返回 rejected Promise
+### ~~5. RPC `call` 断线时返回 rejected Promise~~ ✅
 - **文件**: `common/core/rpc/RpcClient.ts`
 - **问题**: `call()` 在 `isClose` 时直接 `return`（返回 undefined），调用方 `await` 得到 undefined 而非错误
 - **方案**: 改为 `return Promise.reject(new Error(...))`
+- **测试记录**:
+  1. `tsc` 编译通过
+  2. 启动项目，TEST-1 正常 RPC call 返回正确结果（回归通过）
+  3. 设置 `client.isClose=true` 模拟断线，直接调用 `client.call()`：
+     - 触发 warn 日志 `rpc995 is not connected`
+     - 调用方 `await` 正确 catch 到 `Error: rpc995 is not connected`（rejected Promise）
+  4. 测试代码已恢复原状
 
-### 6. RPC 增加错误传播字段
-- **文件**: `common/core/rpc/RpcUtils.ts`, `common/core/rpc/RpcClient.ts`
+### ~~6. RPC 增加错误传播字段~~ ✅
+- **文件**: `common/core/rpc/index.ts`, `common/core/rpc/RpcClient.ts`
 - **问题**: `RpcTransferResult` 无法区分成功与失败，远端异常无法传回调用端
-- **方案**: `RpcTransferResult` 增加 `error` 字段；`handleResult` 中根据 error 决定 resolve/reject
+- **方案**: `RpcTransferResult` 增加 `error` 字段；`handleCall` 异常时填充 error；`handleResult` 中根据 error 决定 resolve/reject
+- **测试记录**:
+  1. `tsc` 编译通过
+  2. 临时在 `DemoRemote` 添加 `throwError()` 方法（抛出异常），`main.ts` 中 template1 通过 RPC call 调用 template2 的该方法
+  3. 启动项目验证：
+     - template2 异常被 try-catch 捕获，error 信息 `test error from throwError` 写入 `replay.error` 回传
+     - template1 调用方在 **29ms** 内 `catch` 捕获到 `Error: test error from throwError`（rejected Promise，非 null result）
+  4. 回归测试：正常 RPC call `log` 方法，**31ms** 返回正确结果 `"hello from test6"`（resolve 正常）
+  5. 测试代码已恢复原状，重新编译确认无残留
 
 ---
 

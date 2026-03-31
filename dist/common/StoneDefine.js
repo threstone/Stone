@@ -7,11 +7,11 @@ var StoneEvent;
     StoneEvent["RpcServerConnected"] = "RpcServerConnected";
     /** 集群状态更新 */
     StoneEvent["ClusterStatusUpdate"] = "ClusterStatusUpdate";
-})(StoneEvent || (exports.StoneEvent = StoneEvent = {}));
+})(StoneEvent = exports.StoneEvent || (exports.StoneEvent = {}));
 var RpcRouteType;
 (function (RpcRouteType) {
     RpcRouteType[RpcRouteType["Random"] = 0] = "Random";
     RpcRouteType[RpcRouteType["Target"] = 1] = "Target";
     RpcRouteType[RpcRouteType["All"] = 2] = "All";
-})(RpcRouteType || (exports.RpcRouteType = RpcRouteType = {}));
+})(RpcRouteType = exports.RpcRouteType || (exports.RpcRouteType = {}));
 //# sourceMappingURL=StoneDefine.js.map
