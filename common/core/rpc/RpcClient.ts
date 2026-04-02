@@ -25,7 +25,7 @@ export class RpcClient {
 
     private _requestMap = new Map<number, CallReq>();
     private _requestId: number = 1;
-    private _socket: WS;
+    private _socket: WS.WebSocket;
     public isClose: boolean = true;
     private _ip: string;
     private _port: number;
@@ -67,7 +67,7 @@ export class RpcClient {
     private connectRpcServer() {
         this._socket && this._socket.terminate();
         const url = "ws://" + this._ip + ":" + this._port;
-        const socket: WS = new WS(url, { generateMask: () => { } });
+        const socket: WS.WebSocket = new WS.WebSocket(url, { generateMask: () => { } });
         this._socket = socket;
 
         socket.on("open", () => {

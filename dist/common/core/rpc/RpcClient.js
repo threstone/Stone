@@ -30,7 +30,7 @@ class RpcClient {
         this._ip = ip;
         this._port = port;
         this._bulk = bulk;
-        this._clearTimeOutTimer = setInterval(this.clearTimeOutReq.bind(this), 3000);
+        setInterval(this.clearTimeOutReq.bind(this), 3000);
         this.connectRpcServer();
         this.setReconnectServer();
     }
@@ -50,22 +50,16 @@ class RpcClient {
      * 重连RPC SERVER
      */
     setReconnectServer() {
-        this._reconnectTimer = setInterval(() => {
+        setInterval(() => {
             if (this.isClose) {
                 this.connectRpcServer();
             }
         }, 15000);
     }
-    destroy() {
-        clearInterval(this._clearTimeOutTimer);
-        clearInterval(this._reconnectTimer);
-        this._socket && this._socket.terminate();
-        this.isClose = true;
-    }
     connectRpcServer() {
         this._socket && this._socket.terminate();
         const url = "ws://" + this._ip + ":" + this._port;
-        const socket = new WS(url, { generateMask: () => { } });
+        const socket = new WS.WebSocket(url, { generateMask: () => { } });
         this._socket = socket;
         socket.on("open", () => {
             this.isClose = false;

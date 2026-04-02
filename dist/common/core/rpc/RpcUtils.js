@@ -7,7 +7,7 @@ var RpcMessageType;
     RpcMessageType[RpcMessageType["call"] = 0] = "call";
     RpcMessageType[RpcMessageType["send"] = 1] = "send";
     RpcMessageType[RpcMessageType["result"] = 2] = "result";
-})(RpcMessageType = exports.RpcMessageType || (exports.RpcMessageType = {}));
+})(RpcMessageType || (exports.RpcMessageType = RpcMessageType = {}));
 /**
  * 要避免json循环引用的问题,如无法避免,引入如下库
  * https://www.npmjs.com/package/json-stringify-safe

@@ -63,7 +63,7 @@ class ServerInit {
                     "type": "file",
                     "filename": `./logs/err`,
                     "alwaysIncludePattern": true,
-                    "pattern": "log",
+                    "pattern": "log", //pattern": "yyyy-MM-dd.log",
                     "maxLogSize": 1024 * 1024 * 100,
                     "backups": 10,
                     "compress": true,
