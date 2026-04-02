@@ -9,7 +9,12 @@ class RpcSession {
         if (startupParam.rpcBulkTime !== 0) {
             this._cacheMsgs = [];
             this._isCahce = true;
-            setInterval(this.doSend.bind(this), startupParam.rpcBulkTime);
+            this._bulkTimer = setInterval(this.doSend.bind(this), startupParam.rpcBulkTime);
+        }
+    }
+    destroy() {
+        if (this._bulkTimer) {
+            clearInterval(this._bulkTimer);
         }
     }
     doSend() {

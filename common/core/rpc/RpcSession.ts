@@ -8,6 +8,7 @@ export class RpcSession {
 
     private _isCahce: boolean = false;
     private _cacheMsgs: string[];
+    private _bulkTimer: NodeJS.Timeout;
 
     constructor(socket: WS) {
         this._socket = socket;
@@ -15,7 +16,13 @@ export class RpcSession {
         if (startupParam.rpcBulkTime !== 0) {
             this._cacheMsgs = [];
             this._isCahce = true;
-            setInterval(this.doSend.bind(this), startupParam.rpcBulkTime);
+            this._bulkTimer = setInterval(this.doSend.bind(this), startupParam.rpcBulkTime);
+        }
+    }
+
+    public destroy() {
+        if (this._bulkTimer) {
+            clearInterval(this._bulkTimer);
         }
     }
 

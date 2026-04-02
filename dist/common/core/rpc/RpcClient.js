@@ -30,7 +30,7 @@ class RpcClient {
         this._ip = ip;
         this._port = port;
         this._bulk = bulk;
-        setInterval(this.clearTimeOutReq.bind(this), 3000);
+        this._clearTimeOutTimer = setInterval(this.clearTimeOutReq.bind(this), 3000);
         this.connectRpcServer();
         this.setReconnectServer();
     }
@@ -50,11 +50,17 @@ class RpcClient {
      * 重连RPC SERVER
      */
     setReconnectServer() {
-        setInterval(() => {
+        this._reconnectTimer = setInterval(() => {
             if (this.isClose) {
                 this.connectRpcServer();
             }
         }, 15000);
+    }
+    destroy() {
+        clearInterval(this._clearTimeOutTimer);
+        clearInterval(this._reconnectTimer);
+        this._socket && this._socket.terminate();
+        this.isClose = true;
     }
     connectRpcServer() {
         this._socket && this._socket.terminate();

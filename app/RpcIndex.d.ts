@@ -17,6 +17,4 @@ declare class Template_DemoRemote {
     static sendLog(routeOption: RpcRouterOptions, str: string): void;
     static callDelayLog(routeOption: RpcRouterOptions, str: string, delayTime: number): Promise<string>;
     static sendDelayLog(routeOption: RpcRouterOptions, str: string, delayTime: number): void;
-    static callThrowError(routeOption: RpcRouterOptions, ): Promise<string>;
-    static sendThrowError(routeOption: RpcRouterOptions, ): void;
 }

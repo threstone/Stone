@@ -19,6 +19,7 @@ class RpcServer {
                 logger.error("rpc client connection is error! ", err);
             });
             ws.on("close", () => {
+                session.destroy();
                 this._nodeIdMap.delete(session.nodeId);
                 const nodeList = this._serverMapList.get(session.serverType);
                 for (let index = 0; index < nodeList.length; index++) {

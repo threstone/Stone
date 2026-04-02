@@ -81,10 +81,19 @@
 
 ## P1 — 稳定性与工程化
 
-### 7. `setInterval` 泄漏清理
+### ~~7. `setInterval` 泄漏清理~~ ✅
 - **文件**: `common/core/rpc/RpcClient.ts`, `common/core/rpc/RpcSession.ts`
 - **问题**: 构造时创建的 setInterval 无清理机制，对象销毁后定时器继续运行
 - **方案**: 保存 interval 引用，增加 `destroy()` 方法清除定时器
+- **测试记录**:
+  1. `tsc` 编译通过
+  2. 启动项目（`env=dev`），所有进程正常启动：master、RPC995、template1、template2 均正常运行
+  3. `list` 命令确认所有 4 个进程运行正常
+  4. `stopall` 命令正常停止所有服务
+  5. 代码变更：
+    socket
+     - `RpcSession`: 新增 `_bulkTimer` 保存 interval 引用；新增 `destroy()` 方法清除定时器
+     - `RpcServer`: 在 `ws.on("close")` 中调用 `session.destroy()` 确保 session 断开时清理定时器
 
 ### 8. 优雅关闭（Graceful Shutdown）
 - **文件**: `common/core/master/src/CommandServer.ts`
