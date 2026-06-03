@@ -100,12 +100,12 @@
 - **问题**: stopAll 直接 kill 所有子进程后 500ms 强制退出，可能丢失数据
 - **方案**: 等待所有子进程 exit 事件完成后再退出，设置合理超时兜底
 
-### 9. `_requestId` 溢出保护
+### ~~9. `_requestId` 溢出保护~~
 - **文件**: `common/core/rpc/RpcClient.ts`
 - **问题**: `_requestId` 不断递增无溢出保护（`_randIndex` 已有保护但 `_requestId` 没有）
 - **方案**: 超过 `Number.MAX_SAFE_INTEGER` 时重置为 1
 
-### 10. 补充 mocha 到 devDependencies
+### ~~10. 补充 mocha 到 devDependencies~~
 - **文件**: `package.json`
 - **问题**: test 脚本使用 mocha 但未在依赖中声明
 - **方案**: 添加 `mocha` 到 devDependencies

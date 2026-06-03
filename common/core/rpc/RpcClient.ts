@@ -168,7 +168,8 @@ export class RpcClient {
             return Promise.reject(new Error(`rpc${this._port} is not connected`));
         }
         return new Promise((resolve, reject) => {
-            const requestId = this._requestId++;
+            const requestId = this._requestId;
+            this._requestId = this._requestId >= Number.MAX_SAFE_INTEGER ? 1 : this._requestId + 1;
             const buffer = RpcUtils.encodeCallReqest(serverConfig.nodeId, serverName, className, funcName, requestId, routeOption, args);
             this._socket.send(buffer);
             this._requestMap.set(requestId, {
