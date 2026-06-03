@@ -95,7 +95,7 @@
      - `RpcSession`: 新增 `_bulkTimer` 保存 interval 引用；新增 `destroy()` 方法清除定时器
      - `RpcServer`: 在 `ws.on("close")` 中调用 `session.destroy()` 确保 session 断开时清理定时器
 
-### 8. 优雅关闭（Graceful Shutdown）
+### 8. ~~优雅关闭（Graceful Shutdown）~~
 - **文件**: `common/core/master/src/CommandServer.ts`
 - **问题**: stopAll 直接 kill 所有子进程后 500ms 强制退出，可能丢失数据
 - **方案**: 等待所有子进程 exit 事件完成后再退出，设置合理超时兜底

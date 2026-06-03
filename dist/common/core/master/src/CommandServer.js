@@ -87,14 +87,31 @@ class CommonServer {
     stopAll(req, res, data) {
         res.statusCode = 200;
         logger.info('process exit');
+        // 收集所有仍在运行的子进程，注册 exit 监听后再发 kill 信号
+        // 注意：不能调用 node.kill()，因为其内部 removeAllListeners() 会清掉我们注册的监听器
+        const exitPromises = [];
         GlobalVar_1.GlobalVar.nodeMgr.serverMap.forEach((node) => {
-            node.kill();
+            const worker = node.worker;
+            if (worker && worker.exitCode === null && worker.signalCode === null) {
+                exitPromises.push(new Promise((resolve) => {
+                    worker.once('exit', () => resolve());
+                }));
+                try {
+                    worker.kill();
+                }
+                catch (error) {
+                    logger.error(`kill worker error: ${node.serverConfig.nodeId}`, error);
+                }
+            }
         });
+        GlobalVar_1.GlobalVar.nodeMgr.serverMap.clear();
         RpcManager_1.RpcManager.stopRpcServer();
         this._httpServer.close();
-        setTimeout(() => {
+        const timeout = new Promise((resolve) => setTimeout(resolve, 5000));
+        Promise.race([Promise.all(exitPromises), timeout]).then(() => {
+            logger.info('all workers exited, process.exit()');
             process.exit();
-        }, 500);
+        });
     }
 }
 exports.CommonServer = CommonServer;
