@@ -1,5 +1,5 @@
 import * as ChildProcess from 'child_process';
-import { NodeWorker } from '../../woker/NodeWorker';
+import { NodeWorker } from '../../worker/NodeWorker';
 import { RpcManager } from '../../rpc/RpcManager';
 import { CommonUtils } from '../../../CommonUtils';
 import { ServersConfigMgr } from '../../server/ServersConfigMgr';
@@ -71,10 +71,10 @@ export class NodeMgr {
         });
         datas['master'] = [masterData];
         this.serverMap.forEach((node) => {
-            tasks.push(node.getWokerMessage(node, maxLens, datas));
+            tasks.push(node.getWokerMessage(maxLens, datas));
         });
         RpcManager.getRpcWorker().forEach((node) => {
-            tasks.push(node.getWokerMessage(node, maxLens, datas));
+            tasks.push(node.getWokerMessage(maxLens, datas));
         });
         await Promise.all(tasks);
 

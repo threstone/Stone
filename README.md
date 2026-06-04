@@ -114,7 +114,7 @@ template的目录如下:
         "template": [
             {
                 "nodeId": "template1",
-                "autuResume": true,
+                "autoResume": true,
                 "logTrace": true,
                 "logLevel": "ALL",
                 "consoleLog": true,
@@ -122,7 +122,7 @@ template的目录如下:
             },
             {
                 "nodeId": "template2",
-                "autuResume": true,
+                "autoResume": true,
                 "logTrace": true,
                 "logLevel": "ALL",
                 "consoleLog": true,
@@ -156,7 +156,7 @@ template的目录如下:
         "template": [ // 服务类型
             {
                 "nodeId": "template1",              // 自定义进程名称
-                "autuResume": true,                 // 是否自动重启
+                "autoResume": true,                 // 是否自动重启
                 "logTrace": true,                   // 是否开启日志跟踪,此功能需要耗费一定性能,线上谨慎开启
                 "logLevel": "ALL",                  // 日志输出级别
                 "consoleLog": true,                 // 是否输出到控制台,默认true,此功能需要耗费一定性能,线上建议关闭,推荐通过读取日志查看日志而不是控制台
@@ -164,7 +164,7 @@ template的目录如下:
             },
             {
                 "nodeId": "template2",              // 自定义进程名称
-                "autuResume": true,                 // 是否自动重启
+                "autoResume": true,                 // 是否自动重启
                 "logTrace": true,                   // 是否开启日志跟踪,此功能需要耗费一定性能,线上谨慎开启
                 "logLevel": "ALL",                  // 日志输出级别
                 "consoleLog": true,                 // 是否输出到控制台,默认true,此功能需要耗费一定性能,线上建议关闭,推荐通过读取日志查看日志而不是控制台 

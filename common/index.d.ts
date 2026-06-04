@@ -33,7 +33,7 @@ declare interface IServerConfig {
     /** 节点类型 */
     serverType?: string
     /** 异常重启,默认false */
-    autuResume?: boolean
+    autoResume?: boolean
     /** 是否输出堆栈信息,默认false,此功能需要耗费一定性能,线上谨慎开启 */
     logTrace?: boolean
     /** 输出级别,默认All */

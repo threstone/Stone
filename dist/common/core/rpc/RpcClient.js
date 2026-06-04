@@ -123,24 +123,24 @@ class RpcClient {
     }
     async handleCall(rpcMsg) {
         const remote = RpcClient.getRemoteObject(rpcMsg);
-        const replay = {
+        const reply = {
             type: RpcUtils_1.RpcMessageType.result,
             fromNodeId: rpcMsg.fromNodeId,
             requestId: rpcMsg.requestId,
             result: null
         };
         if (!remote) {
-            this._socket.send(RpcUtils_1.RpcUtils.encodeResult(replay));
+            this._socket.send(RpcUtils_1.RpcUtils.encodeResult(reply));
             return;
         }
         try {
-            replay.result = await remote[rpcMsg.funcName](...rpcMsg.args);
+            reply.result = await remote[rpcMsg.funcName](...rpcMsg.args);
         }
         catch (error) {
             logger.error(`RPC call error: ${rpcMsg.className}.${rpcMsg.funcName}`, error);
-            replay.error = error instanceof Error ? error.message : String(error);
+            reply.error = error instanceof Error ? error.message : String(error);
         }
-        this._socket.send(RpcUtils_1.RpcUtils.encodeResult(replay));
+        this._socket.send(RpcUtils_1.RpcUtils.encodeResult(reply));
     }
     handleSend(rpcMsg) {
         const remote = RpcClient.getRemoteObject(rpcMsg);

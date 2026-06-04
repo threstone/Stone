@@ -4,7 +4,7 @@ exports.LauncherOption = void 0;
 const CommonUtils_1 = require("./CommonUtils");
 class LauncherOption {
     constructor(args) {
-        this.autuResume = false;
+        this.autoResume = false;
         this.logTrace = false;
         this.logLevel = 'All';
         this.consoleLog = true;

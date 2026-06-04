@@ -1,3 +1,1 @@
-import { RpcRouteType as rpcRouteType, StoneEvent as stoneEvent } from './common/StoneDefine'
-export const RpcRouteType = rpcRouteType;
-export const StoneEvent = stoneEvent;
+export { RpcRouteType, StoneEvent } from './common/StoneDefine'

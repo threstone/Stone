@@ -57,7 +57,7 @@ class CommonServer {
             this.add(req, res, data);
         }
         else {
-            res.write('unknow request');
+            res.write('unknown request');
         }
     }
     async list(req, res, data) {

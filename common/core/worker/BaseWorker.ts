@@ -1,6 +1,7 @@
 import * as ChildProcess from 'child_process';
+import { EventEmitter } from 'events';
 import { CommonUtils } from '../../CommonUtils';
-export class BaseWorker {
+export class BaseWorker extends EventEmitter {
 
     protected _execPath: string;
     private _options: ChildProcess.ForkOptions;
@@ -11,6 +12,7 @@ export class BaseWorker {
     get pid() { return this.worker?.pid }
 
     constructor(execPath: string, serverConfig: IServerConfig) {
+        super();
         this._execPath = execPath;
         this.serverConfig = serverConfig;
     }
@@ -47,7 +49,8 @@ export class BaseWorker {
         logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} exit code: ${code}, signal: ${signal}`);
         this.worker.removeAllListeners();
         setTimeout(() => {
-            if (this.serverConfig.autuResume) {
+            // 兼容以前把autoResume写成了autuResume的问题
+            if (this.serverConfig.autoResume || (this.serverConfig as any).autuResume) {
                 logger.info(`the ${this.serverConfig.nodeId} worker was exited, resume a new ${this.serverConfig.nodeId}`)
                 this.fork();
             }
@@ -59,9 +62,9 @@ export class BaseWorker {
     }
 
     onMessage(message: any) {
-        logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${message}`);
+        logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${JSON.stringify(message)}`);
         if (message.event) {
-            this.worker.emit(message.event, message.data);
+            this.emit(message.event, message.data);
         }
     }
 
@@ -84,12 +87,12 @@ export class BaseWorker {
         worker.on('message', this.onMessage.bind(this));
     }
 
-    async getWokerMessage(node: BaseWorker, maxLens: {}, datas: {}) {
-        const info = await this.getWorkerInfo(node) as { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number };
+    async getWokerMessage(maxLens: {}, datas: {}) {
+        const info = await this.getWorkerInfo() as { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number };
         const childData = {
-            pid: node.pid.toString(),
-            nodeId: node.serverConfig.nodeId,
-            serverType: node.serverConfig.serverType,
+            pid: this.pid.toString(),
+            nodeId: this.serverConfig.nodeId,
+            serverType: this.serverConfig.serverType,
             rss: CommonUtils.formatMemory(info.memoryUsage.rss),
             heapTotal: CommonUtils.formatMemory(info.memoryUsage.heapTotal),
             heapUsed: CommonUtils.formatMemory(info.memoryUsage.heapUsed),
@@ -98,20 +101,20 @@ export class BaseWorker {
         Object.keys(childData).forEach((key) => {
             maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
         });
-        if (datas[node.serverConfig.serverType] == null) {
-            datas[node.serverConfig.serverType] = [];
+        if (datas[this.serverConfig.serverType] == null) {
+            datas[this.serverConfig.serverType] = [];
         }
-        datas[node.serverConfig.serverType].push(childData);
+        datas[this.serverConfig.serverType].push(childData);
     }
 
-    private getWorkerInfo(node: BaseWorker) {
+    private getWorkerInfo() {
         let timer: NodeJS.Timeout;
         return Promise.race([
             new Promise((resolve) => {
-                node.sendMessage({ event: 'getChildInfo' });
-                node.worker.once('childInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
+                this.sendMessage({ event: 'getChildInfo' }); this
+                this.once('childInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
                     if (timer) { clearTimeout(timer); }
-                    data.pid = node.pid;
+                    data.pid = this.pid;
                     resolve(data);
                 });
             }),
@@ -119,7 +122,7 @@ export class BaseWorker {
                 timer = setTimeout(() => {
                     timer = null;
                     resolve({
-                        pid: node.pid,
+                        pid: this.pid,
                         memoryUsage: {
                             rss: 0,
                             heapTotal: 0,

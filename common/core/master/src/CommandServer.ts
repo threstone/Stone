@@ -49,7 +49,7 @@ export class CommonServer {
         } else if (req.url.startsWith('/add')) {
             this.add(req, res, data);
         } else {
-            res.write('unknow request')
+            res.write('unknown request')
         }
     }
 

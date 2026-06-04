@@ -7,7 +7,7 @@ export class LauncherOption implements IServerConfig {
     env: string;
     serverType: string;
 
-    autuResume: boolean = false;
+    autoResume: boolean = false;
     logTrace: boolean = false;
     logLevel: string = 'All';
     consoleLog: boolean = true;

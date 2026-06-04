@@ -9,6 +9,8 @@ class RpcServer {
     constructor(port = startupParam.port) {
         this._serverMapList = new Map();
         this._nodeIdMap = new Map();
+        this._expectedClients = 0;
+        this._connectedClients = 0;
         // todo 暂时先用ws把功能实现,实现后再修改传输层
         let wss = new WS.Server({ port });
         logger.debug(`[${process.pid}] rpc server start, port:${port}`);
@@ -31,15 +33,32 @@ class RpcServer {
                 }
             });
         });
-        /**
-         * 尽量保证所有客户端都连接上了再处理消息,增加一个缓冲时间
-         * 防止A call B 但是B还未连接上RPC server导致消息无法成功转发
-         */
         this._isHandleMsg = false;
+        // 向 master 主动查询期望连接数（握手式，重启后自动重新查询）
+        if (process.send) {
+            process.send({ event: 'queryExpectedClients' });
+        }
+        // 接收 master 回传的期望连接数，连满后立即就绪
+        process.on('message', (msg) => {
+            if ((msg === null || msg === void 0 ? void 0 : msg.event) === 'setExpectedClients') {
+                this._expectedClients = msg.count;
+                this.tryReady();
+            }
+        });
+        // 3 秒超时兜底，防止 master 未响应或节点数不符预期
         setTimeout(() => {
-            this._isHandleMsg = true;
-            eventEmitter.emit('RpcServerHandleStart');
+            this.tryReady(true);
         }, 3000);
+    }
+    tryReady(isTimeOutTrigger = false) {
+        if (this._isHandleMsg) {
+            return;
+        }
+        if (this._expectedClients === 0 || this._connectedClients >= this._expectedClients || isTimeOutTrigger) {
+            this._isHandleMsg = true;
+            logger.debug(`[${process.pid}] rpc server ready, connected: ${this._connectedClients}/${this._expectedClients}`);
+            eventEmitter.emit('RpcServerHandleStart');
+        }
     }
     handleMessage(session, buffer) {
         try {
@@ -56,6 +75,8 @@ class RpcServer {
                 }
                 nodeList.push(session);
                 this._nodeIdMap.set(session.nodeId, session);
+                this._connectedClients++;
+                this.tryReady();
                 return;
             }
             if (this._isHandleMsg) {

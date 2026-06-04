@@ -6,10 +6,10 @@ class ServersConfigMgr {
     static init() {
         this._configFilePath = path.join(process.cwd(), '/config/servers.json');
         const serversConfig = require(this._configFilePath);
-        this.ininConfigMap(serversConfig);
+        this.initConfigMap(serversConfig);
         global.serverConfig = serversConfigMap.get(startupParam.nodeId);
     }
-    static ininConfigMap(configs) {
+    static initConfigMap(configs) {
         global.serversConfigMap = new Map();
         const env = startupParam.env;
         const serversConfigs = configs[env];

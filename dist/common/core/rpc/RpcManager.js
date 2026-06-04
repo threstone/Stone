@@ -4,7 +4,7 @@ exports.RpcManager = void 0;
 const fs = require("fs");
 const path = require("path");
 const CommonUtils_1 = require("../../CommonUtils");
-const BaseWorker_1 = require("../woker/BaseWorker");
+const BaseWorker_1 = require("../worker/BaseWorker");
 const RpcClient_1 = require("./RpcClient");
 const StoneDefine_1 = require("../../StoneDefine");
 class RpcManager {
@@ -50,15 +50,26 @@ class RpcManager {
     static initRpcServers() {
         this._serverWorker = [];
         const rpcPorts = serversConfigMap.get('master').rpcPorts;
+        // 计算期望连接的客户端数：非 master、非 RPC 类型的节点（这些节点会启动 RpcClient）
+        let expectedClients = 0;
+        serversConfigMap.forEach((conf) => {
+            if (conf.serverType !== 'master' && conf.serverType !== 'RPC') {
+                expectedClients++;
+            }
+        });
         rpcPorts.forEach((port) => {
             const worker = new BaseWorker_1.BaseWorker(path.join(__dirname, '../server/ServerLauncher'), {
                 nodeId: `RPC${port}`,
                 port: port,
-                autuResume: true,
+                autoResume: true,
                 serverType: 'RPC',
                 env,
             });
             this._serverWorker.push(worker);
+            // worker 实例生命周期不变，子进程重启后监听器依然有效
+            worker.on('queryExpectedClients', () => {
+                worker.sendMessage({ event: 'setExpectedClients', count: expectedClients });
+            });
             worker.fork();
         });
     }

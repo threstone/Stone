@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NodeMgr = void 0;
-const NodeWorker_1 = require("../../woker/NodeWorker");
+const NodeWorker_1 = require("../../worker/NodeWorker");
 const RpcManager_1 = require("../../rpc/RpcManager");
 const CommonUtils_1 = require("../../../CommonUtils");
 const ServersConfigMgr_1 = require("../../server/ServersConfigMgr");
@@ -58,10 +58,10 @@ class NodeMgr {
         });
         datas['master'] = [masterData];
         this.serverMap.forEach((node) => {
-            tasks.push(node.getWokerMessage(node, maxLens, datas));
+            tasks.push(node.getWokerMessage(maxLens, datas));
         });
         RpcManager_1.RpcManager.getRpcWorker().forEach((node) => {
-            tasks.push(node.getWokerMessage(node, maxLens, datas));
+            tasks.push(node.getWokerMessage(maxLens, datas));
         });
         await Promise.all(tasks);
         // 将数据组织成表格显示
