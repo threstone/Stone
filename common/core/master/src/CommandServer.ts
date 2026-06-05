@@ -5,7 +5,7 @@ import { RpcManager } from '../../rpc/RpcManager';
 export class CommonServer {
     private _httpServer: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     constructor() {
-        const port = serversConfigMap.get('master')?.port || 1000;
+        const port = serverConfig?.port || 1000;
         this._httpServer = http.createServer((req, res) => {
             const remoteAddr = req.socket.remoteAddress;
             if (remoteAddr !== '127.0.0.1' && remoteAddr !== '::1' && remoteAddr !== '::ffff:127.0.0.1') {

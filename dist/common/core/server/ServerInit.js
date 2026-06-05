@@ -16,10 +16,10 @@ class ServerInit {
         global.eventEmitter = new events_1.EventEmitter();
         // 初始化进程事件
         ServerInit.initProcessEvent();
-        // 日志初始化
-        ServerInit.initLogger();
         // 初始化service config manager
         ServersConfigMgr_1.ServersConfigMgr.init();
+        // 日志初始化
+        ServerInit.initLogger();
         // 集群状态管理器
         ClusterStateMgr_1.ClusterStateMgr.init();
         // RPC模块初始化
@@ -35,7 +35,9 @@ class ServerInit {
     }
     static initLogger() {
         const nodeId = (startupParam === null || startupParam === void 0 ? void 0 : startupParam.nodeId) || 'app';
-        const pattern = startupParam.logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]';
+        const logTrace = startupParam.logTrace;
+        const pattern = logTrace === true ? '%f:%l:%o [%d] [%p] [%c]' : '[%d] [%p] [%c]';
+        const logLevel = (serverConfig === null || serverConfig === void 0 ? void 0 : serverConfig.logLevel) || startupParam.logLevel;
         const loggerConfig = {
             "appenders": {
                 "console": {
@@ -80,8 +82,8 @@ class ServerInit {
                         // "console",
                         "debug"
                     ],
-                    "level": startupParam.logLevel || 'ALL',
-                    "enableCallStack": startupParam.logTrace
+                    "level": logLevel,
+                    "enableCallStack": logTrace
                 },
                 [nodeId + ' error']: {
                     "appenders": [
@@ -89,7 +91,7 @@ class ServerInit {
                         "debug"
                     ],
                     "level": "error",
-                    "enableCallStack": startupParam.logTrace
+                    "enableCallStack": logTrace
                 }
             }
         };

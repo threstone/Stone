@@ -6,8 +6,7 @@ const GlobalVar_1 = require("./GlobalVar");
 const RpcManager_1 = require("../../rpc/RpcManager");
 class CommonServer {
     constructor() {
-        var _a;
-        const port = ((_a = serversConfigMap.get('master')) === null || _a === void 0 ? void 0 : _a.port) || 1000;
+        const port = (serverConfig === null || serverConfig === void 0 ? void 0 : serverConfig.port) || 1000;
         this._httpServer = http.createServer((req, res) => {
             const remoteAddr = req.socket.remoteAddress;
             if (remoteAddr !== '127.0.0.1' && remoteAddr !== '::1' && remoteAddr !== '::ffff:127.0.0.1') {

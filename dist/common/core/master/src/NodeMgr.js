@@ -58,10 +58,10 @@ class NodeMgr {
         });
         datas['master'] = [masterData];
         this.serverMap.forEach((node) => {
-            tasks.push(node.getWokerMessage(maxLens, datas));
+            tasks.push(node.getWorkerMessage(maxLens, datas));
         });
         RpcManager_1.RpcManager.getRpcWorker().forEach((node) => {
-            tasks.push(node.getWokerMessage(maxLens, datas));
+            tasks.push(node.getWorkerMessage(maxLens, datas));
         });
         await Promise.all(tasks);
         // 将数据组织成表格显示

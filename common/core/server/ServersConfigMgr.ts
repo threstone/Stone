@@ -15,7 +15,10 @@ export class ServersConfigMgr {
         const env = startupParam.env;
         const serversConfigs = configs[env];
         if (!serversConfigs) {
-            logger.error(`缺少启动配置 env:${env}`);
+            setTimeout(() => {
+                logger.error(`缺少启动配置 env:${env}`);
+                process.exit();
+            }, 0);
             return;
         }
 

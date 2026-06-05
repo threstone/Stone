@@ -7,7 +7,8 @@
                 995
             ],
             "rpcBulkSize": 100,
-            "rpcBulkTime": 10,
+            "rpcBulkTime": 101,
+            "logLevel": "all",
             "isCreateRpcDeclare": true
         },
         "template": [

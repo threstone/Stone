@@ -49,7 +49,7 @@ class RpcManager {
     /** 启动rpc服务器 */
     static initRpcServers() {
         this._serverWorker = [];
-        const rpcPorts = serversConfigMap.get('master').rpcPorts;
+        const rpcPorts = serverConfig.rpcPorts;
         // 计算期望连接的客户端数：非 master、非 RPC 类型的节点（这些节点会启动 RpcClient）
         let expectedClients = 0;
         serversConfigMap.forEach((conf) => {
@@ -64,6 +64,7 @@ class RpcManager {
                 autoResume: true,
                 serverType: 'RPC',
                 env,
+                logLevel: serverConfig.logLevel
             });
             this._serverWorker.push(worker);
             // worker 实例生命周期不变，子进程重启后监听器依然有效
@@ -180,7 +181,7 @@ class RpcManager {
     }
     /** 测试环境 生成并更新rpc类型描述文件 */
     static initRpcDeclare() {
-        if (serversConfigMap.get('master').isCreateRpcDeclare !== true) {
+        if (serverConfig.isCreateRpcDeclare !== true) {
             return;
         }
         let rpcDeclare = `

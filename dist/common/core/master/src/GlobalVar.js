@@ -5,7 +5,7 @@ const NodeMgr_1 = require("./NodeMgr");
 const CommandServer_1 = require("./CommandServer");
 class GlobalVar {
     static init() {
-        logger.info(`[${process.pid}] init ...`);
+        logger.debug(`[${process.pid}] init ...`);
         // 命令模块
         this.commonServer = new CommandServer_1.CommonServer();
         // 子进程模块

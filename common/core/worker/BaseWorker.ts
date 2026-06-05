@@ -62,7 +62,7 @@ export class BaseWorker extends EventEmitter {
     }
 
     onMessage(message: any) {
-        logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${JSON.stringify(message)}`);
+        logger.debug(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${JSON.stringify(message)}`);
         if (message.event) {
             this.emit(message.event, message.data);
         }
@@ -87,7 +87,7 @@ export class BaseWorker extends EventEmitter {
         worker.on('message', this.onMessage.bind(this));
     }
 
-    async getWokerMessage(maxLens: {}, datas: {}) {
+    async getWorkerMessage(maxLens: {}, datas: {}) {
         const info = await this.getWorkerInfo() as { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number };
         const childData = {
             pid: this.pid.toString(),
@@ -111,7 +111,7 @@ export class BaseWorker extends EventEmitter {
         let timer: NodeJS.Timeout;
         return Promise.race([
             new Promise((resolve) => {
-                this.sendMessage({ event: 'getChildInfo' }); this
+                this.sendMessage({ event: 'getChildInfo' });
                 this.once('childInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
                     if (timer) { clearTimeout(timer); }
                     data.pid = this.pid;

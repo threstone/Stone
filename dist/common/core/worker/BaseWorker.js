@@ -51,7 +51,7 @@ class BaseWorker extends events_1.EventEmitter {
         logger.error(`the ${this.serverConfig.nodeId} worker${this.worker.pid} got error: ${error}`);
     }
     onMessage(message) {
-        logger.info(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${JSON.stringify(message)}`);
+        logger.debug(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${JSON.stringify(message)}`);
         if (message.event) {
             this.emit(message.event, message.data);
         }
@@ -72,7 +72,7 @@ class BaseWorker extends events_1.EventEmitter {
         worker.on('error', this.onError.bind(this));
         worker.on('message', this.onMessage.bind(this));
     }
-    async getWokerMessage(maxLens, datas) {
+    async getWorkerMessage(maxLens, datas) {
         const info = await this.getWorkerInfo();
         const childData = {
             pid: this.pid.toString(),
@@ -96,7 +96,6 @@ class BaseWorker extends events_1.EventEmitter {
         return Promise.race([
             new Promise((resolve) => {
                 this.sendMessage({ event: 'getChildInfo' });
-                this;
                 this.once('childInfo', (data) => {
                     if (timer) {
                         clearTimeout(timer);
