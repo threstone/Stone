@@ -64,7 +64,7 @@ class RpcManager {
                 autoResume: true,
                 serverType: 'RPC',
                 env,
-                logLevel: serverConfig.logLevel
+                logLevel: serverConfig.logLevel || 'ALL'
             });
             this._serverWorker.push(worker);
             // worker 实例生命周期不变，子进程重启后监听器依然有效

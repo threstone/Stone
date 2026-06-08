@@ -76,7 +76,7 @@ export class RpcManager {
                 autoResume: true,
                 serverType: 'RPC',
                 env,
-                logLevel: serverConfig.logLevel
+                logLevel: serverConfig.logLevel || 'ALL'
             });
             this._serverWorker.push(worker);
 
