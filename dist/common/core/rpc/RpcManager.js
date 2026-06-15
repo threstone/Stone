@@ -181,7 +181,8 @@ class RpcManager {
     }
     /** 测试环境 生成并更新rpc类型描述文件 */
     static initRpcDeclare() {
-        if (serverConfig.isCreateRpcDeclare !== true) {
+        // 可能会在其他服务调用到这个方法
+        if (serversConfigMap.get('master').isCreateRpcDeclare !== true) {
             return;
         }
         let rpcDeclare = `
