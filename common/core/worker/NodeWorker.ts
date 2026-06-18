@@ -9,6 +9,7 @@ export class NodeWorker extends BaseWorker {
         super(path.join(__dirname, '../server/ServerLauncher'), serverConfig);
         this.serverConfig = serverConfig;
         this._nodeMgr = nodeMgr;
+        this.on('getServerInfo', this.onGetServerInfo.bind(this));
     }
 
     protected startWorker() {
@@ -22,6 +23,17 @@ export class NodeWorker extends BaseWorker {
     /** 向node发送集群信息 */
     notifyClusterInfo(info: { nodeId: string, serverConfig: IServerConfig }[]) {
         this.sendMessage({ event: 'clusterInfo', info })
+    }
+
+    private async onGetServerInfo(message: { requestId: number }) {
+        const requestId = message.requestId;
+        try {
+            const data = await this._nodeMgr.getServerInfo();
+            this.sendMessage({ event: 'serverInfo', requestId, data });
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            this.sendMessage({ event: 'serverInfo', requestId, error: errorMsg });
+        }
     }
 
     kill(): void {

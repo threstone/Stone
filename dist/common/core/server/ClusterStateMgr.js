@@ -10,9 +10,11 @@ class ClusterStateMgr {
         }
         this.serverMap = new Map();
         global.getClusterInfo = this.getClusterInfo.bind(this);
+        global.getServerInfo = this.getServerInfo.bind(this);
         const eventMap = new Map([
             ['getChildInfo', this.getChildInfo.bind(this)],
-            ['clusterInfo', this.initClusterInfo.bind(this)]
+            ['clusterInfo', this.initClusterInfo.bind(this)],
+            ['serverInfo', this.onServerInfo.bind(this)]
         ]);
         process.on('message', (message) => {
             var _a;
@@ -37,6 +39,44 @@ class ClusterStateMgr {
     static getClusterInfo() {
         return this.serverMap;
     }
+    static getServerInfo() {
+        if (this.serverInfoReq) {
+            return this.serverInfoReq.promise;
+        }
+        if (!process.send) {
+            return Promise.reject(new Error('process.send is not available'));
+        }
+        const requestId = this.serverInfoRequestId;
+        this.serverInfoRequestId = this.serverInfoRequestId >= Number.MAX_SAFE_INTEGER ? 1 : this.serverInfoRequestId + 1;
+        let resolveReq;
+        let rejectReq;
+        const promise = new Promise((resolve, reject) => {
+            resolveReq = resolve;
+            rejectReq = reject;
+        });
+        const timer = setTimeout(() => {
+            this.serverInfoReq = null;
+            rejectReq(new Error('getServerInfo timeout'));
+        }, 15000);
+        this.serverInfoReq = { requestId, promise, resolve: resolveReq, reject: rejectReq, timer };
+        process.send({ event: 'getServerInfo', requestId });
+        return promise;
+    }
+    static onServerInfo(message) {
+        const request = this.serverInfoReq;
+        if (!request || request.requestId !== message.requestId) {
+            return;
+        }
+        clearTimeout(request.timer);
+        this.serverInfoReq = null;
+        if (message.error) {
+            request.reject(new Error(message.error));
+        }
+        else {
+            request.resolve(message.data);
+        }
+    }
 }
 exports.ClusterStateMgr = ClusterStateMgr;
+ClusterStateMgr.serverInfoRequestId = 1;
 //# sourceMappingURL=ClusterStateMgr.js.map

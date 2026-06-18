@@ -8,6 +8,7 @@ class NodeWorker extends BaseWorker_1.BaseWorker {
         super(path.join(__dirname, '../server/ServerLauncher'), serverConfig);
         this.serverConfig = serverConfig;
         this._nodeMgr = nodeMgr;
+        this.on('getServerInfo', this.onGetServerInfo.bind(this));
     }
     startWorker() {
         super.startWorker();
@@ -19,6 +20,17 @@ class NodeWorker extends BaseWorker_1.BaseWorker {
     /** 向node发送集群信息 */
     notifyClusterInfo(info) {
         this.sendMessage({ event: 'clusterInfo', info });
+    }
+    async onGetServerInfo(message) {
+        const requestId = message.requestId;
+        try {
+            const data = await this._nodeMgr.getServerInfo();
+            this.sendMessage({ event: 'serverInfo', requestId, data });
+        }
+        catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            this.sendMessage({ event: 'serverInfo', requestId, error: errorMsg });
+        }
     }
     kill() {
         super.kill();

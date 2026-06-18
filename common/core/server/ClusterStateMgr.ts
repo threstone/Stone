@@ -4,6 +4,8 @@ import { StoneEvent } from "../../StoneDefine";
 export class ClusterStateMgr {
 
     private static serverMap: Map<string, IServerConfig>;
+    private static serverInfoReq: ServerInfoReq;
+    private static serverInfoRequestId: number = 1;
 
     static init() {
         if (startupParam.nodeId === 'master') {
@@ -11,10 +13,12 @@ export class ClusterStateMgr {
         }
         this.serverMap = new Map();
         global.getClusterInfo = this.getClusterInfo.bind(this);
+        global.getServerInfo = this.getServerInfo.bind(this);
 
         const eventMap = new Map([
             ['getChildInfo', this.getChildInfo.bind(this)],
-            ['clusterInfo', this.initClusterInfo.bind(this)]
+            ['clusterInfo', this.initClusterInfo.bind(this)],
+            ['serverInfo', this.onServerInfo.bind(this)]
         ]);
         process.on('message', (message) => {
             eventMap.get(message.event)?.(message);
@@ -41,4 +45,51 @@ export class ClusterStateMgr {
     static getClusterInfo() {
         return this.serverMap;
     }
+
+    static getServerInfo(): Promise<IServerInfoMap> {
+        if (this.serverInfoReq) {
+            return this.serverInfoReq.promise;
+        }
+        if (!process.send) {
+            return Promise.reject(new Error('process.send is not available'));
+        }
+
+        const requestId = this.serverInfoRequestId;
+        this.serverInfoRequestId = this.serverInfoRequestId >= Number.MAX_SAFE_INTEGER ? 1 : this.serverInfoRequestId + 1;
+        let resolveReq: (data: IServerInfoMap) => void;
+        let rejectReq: (error: Error) => void;
+        const promise = new Promise<IServerInfoMap>((resolve, reject) => {
+            resolveReq = resolve;
+            rejectReq = reject;
+        });
+        const timer = setTimeout(() => {
+            this.serverInfoReq = null;
+            rejectReq(new Error('getServerInfo timeout'));
+        }, 15000);
+        this.serverInfoReq = { requestId, promise, resolve: resolveReq, reject: rejectReq, timer };
+        process.send({ event: 'getServerInfo', requestId });
+        return promise;
+    }
+
+    private static onServerInfo(message: { requestId: number, data?: IServerInfoMap, error?: string }) {
+        const request = this.serverInfoReq;
+        if (!request || request.requestId !== message.requestId) {
+            return;
+        }
+        clearTimeout(request.timer);
+        this.serverInfoReq = null;
+        if (message.error) {
+            request.reject(new Error(message.error));
+        } else {
+            request.resolve(message.data);
+        }
+    }
+}
+
+interface ServerInfoReq {
+    requestId: number;
+    promise: Promise<IServerInfoMap>;
+    resolve: (data: IServerInfoMap) => void;
+    reject: (error: Error) => void;
+    timer: NodeJS.Timeout;
 }

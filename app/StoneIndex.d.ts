@@ -12,6 +12,20 @@ declare var eventEmitter: NodeJS.EventEmitter;
 declare var logger: ILog;
 /** 获取集群信息,未启动的服务不会在map中 */
 declare function getClusterInfo(): Map<string, IServerConfig>;
+/** 获取整个集群的运行时信息 */
+declare function getServerInfo(): Promise<IServerInfoMap>;
+
+declare interface IServerRuntimeInfo {
+    pid: number
+    nodeId: string
+    serverType: string
+    memoryUsage: NodeJS.MemoryUsage
+    uptime: number
+}
+
+declare interface IServerInfoMap {
+    [serverType: string]: IServerRuntimeInfo[]
+}
 
 /** servers.json配置定义 */
 declare interface IServerConfig {

@@ -1,6 +1,5 @@
 import * as ChildProcess from 'child_process';
 import { EventEmitter } from 'events';
-import { CommonUtils } from '../../CommonUtils';
 export class BaseWorker extends EventEmitter {
 
     protected _execPath: string;
@@ -64,7 +63,7 @@ export class BaseWorker extends EventEmitter {
     onMessage(message: any) {
         logger.debug(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${JSON.stringify(message)}`);
         if (message.event) {
-            this.emit(message.event, message.data);
+            this.emit(message.event, message.data === undefined ? message : message.data);
         }
     }
 
@@ -87,42 +86,31 @@ export class BaseWorker extends EventEmitter {
         worker.on('message', this.onMessage.bind(this));
     }
 
-    async getWorkerMessage(maxLens: {}, datas: {}) {
-        const info = await this.getWorkerInfo() as { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number };
-        const childData = {
-            pid: this.pid.toString(),
+    async getWorkerInfo(): Promise<IServerRuntimeInfo> {
+        const info = await this.getChildInfo();
+        return {
+            pid: this.pid || 0,
             nodeId: this.serverConfig.nodeId,
             serverType: this.serverConfig.serverType,
-            rss: CommonUtils.formatMemory(info.memoryUsage.rss),
-            heapTotal: CommonUtils.formatMemory(info.memoryUsage.heapTotal),
-            heapUsed: CommonUtils.formatMemory(info.memoryUsage.heapUsed),
-            runTime: (info.uptime / 60).toFixed(2)
+            memoryUsage: info.memoryUsage,
+            uptime: info.uptime
         };
-        Object.keys(childData).forEach((key) => {
-            maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
-        });
-        if (datas[this.serverConfig.serverType] == null) {
-            datas[this.serverConfig.serverType] = [];
-        }
-        datas[this.serverConfig.serverType].push(childData);
     }
 
-    private getWorkerInfo() {
+    private getChildInfo(): Promise<{ memoryUsage: NodeJS.MemoryUsage, uptime: number }> {
         let timer: NodeJS.Timeout;
         return Promise.race([
-            new Promise((resolve) => {
+            new Promise<{ memoryUsage: NodeJS.MemoryUsage, uptime: number }>((resolve) => {
                 this.sendMessage({ event: 'getChildInfo' });
-                this.once('childInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number, pid: number }) => {
+                this.once('childInfo', (data: { memoryUsage: NodeJS.MemoryUsage, uptime: number }) => {
                     if (timer) { clearTimeout(timer); }
-                    data.pid = this.pid;
                     resolve(data);
                 });
             }),
-            new Promise<any>((resolve) => {
+            new Promise<{ memoryUsage: NodeJS.MemoryUsage, uptime: number }>((resolve) => {
                 timer = setTimeout(() => {
                     timer = null;
                     resolve({
-                        pid: this.pid,
                         memoryUsage: {
                             rss: 0,
                             heapTotal: 0,

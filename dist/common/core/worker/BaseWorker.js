@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseWorker = void 0;
 const ChildProcess = require("child_process");
 const events_1 = require("events");
-const CommonUtils_1 = require("../../CommonUtils");
 class BaseWorker extends events_1.EventEmitter {
     get pid() { var _a; return (_a = this.worker) === null || _a === void 0 ? void 0 : _a.pid; }
     constructor(execPath, serverConfig) {
@@ -53,7 +52,7 @@ class BaseWorker extends events_1.EventEmitter {
     onMessage(message) {
         logger.debug(`the ${this.serverConfig.nodeId} worker${this.worker.pid} message: ${JSON.stringify(message)}`);
         if (message.event) {
-            this.emit(message.event, message.data);
+            this.emit(message.event, message.data === undefined ? message : message.data);
         }
     }
     sendMessage(message) {
@@ -72,26 +71,17 @@ class BaseWorker extends events_1.EventEmitter {
         worker.on('error', this.onError.bind(this));
         worker.on('message', this.onMessage.bind(this));
     }
-    async getWorkerMessage(maxLens, datas) {
-        const info = await this.getWorkerInfo();
-        const childData = {
-            pid: this.pid.toString(),
+    async getWorkerInfo() {
+        const info = await this.getChildInfo();
+        return {
+            pid: this.pid || 0,
             nodeId: this.serverConfig.nodeId,
             serverType: this.serverConfig.serverType,
-            rss: CommonUtils_1.CommonUtils.formatMemory(info.memoryUsage.rss),
-            heapTotal: CommonUtils_1.CommonUtils.formatMemory(info.memoryUsage.heapTotal),
-            heapUsed: CommonUtils_1.CommonUtils.formatMemory(info.memoryUsage.heapUsed),
-            runTime: (info.uptime / 60).toFixed(2)
+            memoryUsage: info.memoryUsage,
+            uptime: info.uptime
         };
-        Object.keys(childData).forEach((key) => {
-            maxLens[key] = Math.max(childData[key].length + 2, maxLens[key]);
-        });
-        if (datas[this.serverConfig.serverType] == null) {
-            datas[this.serverConfig.serverType] = [];
-        }
-        datas[this.serverConfig.serverType].push(childData);
     }
-    getWorkerInfo() {
+    getChildInfo() {
         let timer;
         return Promise.race([
             new Promise((resolve) => {
@@ -100,7 +90,6 @@ class BaseWorker extends events_1.EventEmitter {
                     if (timer) {
                         clearTimeout(timer);
                     }
-                    data.pid = this.pid;
                     resolve(data);
                 });
             }),
@@ -108,7 +97,6 @@ class BaseWorker extends events_1.EventEmitter {
                 timer = setTimeout(() => {
                     timer = null;
                     resolve({
-                        pid: this.pid,
                         memoryUsage: {
                             rss: 0,
                             heapTotal: 0,

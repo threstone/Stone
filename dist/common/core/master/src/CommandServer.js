@@ -60,7 +60,7 @@ class CommonServer {
         }
     }
     async list(req, res, data) {
-        const result = await GlobalVar_1.GlobalVar.nodeMgr.getServerInfo();
+        const result = await GlobalVar_1.GlobalVar.nodeMgr.getServerInfoStr();
         res.write(result);
     }
     kill(req, res, data) {

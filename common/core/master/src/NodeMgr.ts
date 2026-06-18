@@ -34,7 +34,31 @@ export class NodeMgr {
         })
     }
 
-    public async getServerInfo() {
+    public async getServerInfo(): Promise<IServerInfoMap> {
+        const memoryUsage = process.memoryUsage();
+        const datas: IServerInfoMap = {
+            master: [{
+                pid: process.pid,
+                nodeId: 'master',
+                serverType: 'master',
+                memoryUsage,
+                uptime: process.uptime()
+            }]
+        };
+
+        const tasks: Promise<void>[] = [];
+        this.serverMap.forEach((node) => {
+            tasks.push(this.pushWorkerInfo(datas, node));
+        });
+        RpcManager.getRpcWorker().forEach((node) => {
+            tasks.push(this.pushWorkerInfo(datas, node));
+        });
+        await Promise.all(tasks);
+        return datas;
+    }
+
+    public async getServerInfoStr() {
+        const datas = await this.getServerInfo();
         const maxLens = {
             ['pid']: 'pid'.length + 2,
             ['nodeId']: 'nodeId'.length + 2,
@@ -44,7 +68,7 @@ export class NodeMgr {
             ['heapUsed']: 'heapUsed'.length + 2,
             ['runTime']: 'runTime'.length + 2,
         };
-        const datas: {
+        const tableDatas: {
             [key: string]: {
                 ['nodeId']: string,
                 ['pid']: string,
@@ -55,28 +79,24 @@ export class NodeMgr {
                 ['runTime']: string,
             }[]
         } = {};
-        const tasks = [];
-        const memoryUsage = process.memoryUsage();
-        const masterData = {
-            pid: process.pid.toString(),
-            nodeId: 'master',
-            serverType: 'master',
-            rss: CommonUtils.formatMemory(memoryUsage.rss),
-            heapTotal: CommonUtils.formatMemory(memoryUsage.heapTotal),
-            heapUsed: CommonUtils.formatMemory(memoryUsage.heapUsed),
-            runTime: (process.uptime() / 60).toFixed(2)
-        };
-        Object.keys(masterData).forEach((key) => {
-            maxLens[key] = Math.max(masterData[key].length + 2, maxLens[key]);
+        Object.keys(datas).forEach((serverType) => {
+            tableDatas[serverType] = datas[serverType].map((info) => {
+                return {
+                    pid: info.pid.toString(),
+                    nodeId: info.nodeId,
+                    serverType: info.serverType,
+                    rss: CommonUtils.formatMemory(info.memoryUsage.rss),
+                    heapTotal: CommonUtils.formatMemory(info.memoryUsage.heapTotal),
+                    heapUsed: CommonUtils.formatMemory(info.memoryUsage.heapUsed),
+                    runTime: (info.uptime / 60).toFixed(2)
+                };
+            });
+            tableDatas[serverType].forEach((serverInfo) => {
+                Object.keys(serverInfo).forEach((key) => {
+                    maxLens[key] = Math.max(serverInfo[key].length + 2, maxLens[key]);
+                });
+            });
         });
-        datas['master'] = [masterData];
-        this.serverMap.forEach((node) => {
-            tasks.push(node.getWorkerMessage(maxLens, datas));
-        });
-        RpcManager.getRpcWorker().forEach((node) => {
-            tasks.push(node.getWorkerMessage(maxLens, datas));
-        });
-        await Promise.all(tasks);
 
         // 将数据组织成表格显示
         let result = '';
@@ -84,8 +104,8 @@ export class NodeMgr {
         keys.forEach((key) => {
             result += `${key.padEnd(maxLens[key], ' ')}`;
         });
-        Object.keys(datas).sort((a, b) => { return this.getWeight(a) > this.getWeight(b) ? 1 : -1 }).forEach((serverType) => {
-            const list = datas[serverType];
+        Object.keys(tableDatas).sort((a, b) => { return this.getWeight(a) > this.getWeight(b) ? 1 : -1 }).forEach((serverType) => {
+            const list = tableDatas[serverType];
             // 根据pid sort一下
             list.sort((a, b) => { return this.getWeight(a.nodeId) > this.getWeight(b.nodeId) ? 1 : -1; })
             list.forEach((childData) => {
@@ -96,6 +116,14 @@ export class NodeMgr {
             });
         });
         return result;
+    }
+
+    private async pushWorkerInfo(datas: IServerInfoMap, node: { getWorkerInfo(): Promise<IServerRuntimeInfo> }) {
+        const info = await node.getWorkerInfo();
+        if (datas[info.serverType] == null) {
+            datas[info.serverType] = [];
+        }
+        datas[info.serverType].push(info);
     }
 
     public startServer(nodeId: string) {

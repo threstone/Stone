@@ -54,7 +54,7 @@ export class CommonServer {
     }
 
     private async list(req: http.IncomingMessage, res: http.ServerResponse, data: object) {
-        const result = await GlobalVar.nodeMgr.getServerInfo();
+        const result = await GlobalVar.nodeMgr.getServerInfoStr();
         res.write(result);
     }
 
