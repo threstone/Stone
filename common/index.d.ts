@@ -16,11 +16,11 @@ declare function getClusterInfo(): Map<string, IServerConfig>;
 declare function getServerInfo(): Promise<IServerInfoMap>;
 
 declare interface IServerRuntimeInfo {
-    pid: number
-    nodeId: string
-    serverType: string
-    memoryUsage: NodeJS.MemoryUsage
-    uptime: number
+    pid: number;
+    nodeId: string;
+    serverType: string;
+    memoryUsage: NodeJS.MemoryUsage;
+    uptime: number;
 }
 
 declare interface IServerInfoMap {

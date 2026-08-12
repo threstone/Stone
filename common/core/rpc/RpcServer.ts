@@ -58,7 +58,7 @@ class RpcServer {
         // 3 秒超时兜底，防止 master 未响应或节点数不符预期
         setTimeout(() => {
             this.tryReady(true);
-        }, 3000);
+        }, 8000);
     }
 
     private tryReady(isTimeOutTrigger = false) {
