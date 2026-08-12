@@ -40,7 +40,7 @@ class RpcClient {
         this._requestMap.forEach((req, requestId, map) => {
             if (req.sendTime + 15000 < now) {
                 map.delete(requestId);
-                const errInfo = `reqest time out :${req.reqInfo}`;
+                const errInfo = `request time out :${req.reqInfo}`;
                 logger.error(errInfo);
                 req.reject(errInfo);
             }
