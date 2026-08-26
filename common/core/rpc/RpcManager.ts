@@ -249,6 +249,15 @@ declare class rpc {
         }
     }
 
+    /** 懒加载 typescript 依赖,不可用时返回 undefined */
+    private static getTs() {
+        try {
+            return require('typescript');
+        } catch (error) {
+            return undefined;
+        }
+    }
+
     /** 获取remote class所有函数的描述信息 */
     private static getClassFunctionDesc(serverType: string, className: string, functionList: string[]) {
         const funcDescList: string[] = [];
@@ -257,11 +266,18 @@ declare class rpc {
             return;
         }
         const fileText = fs.readFileSync(filePath, { encoding: 'utf8' });
+        const ts = this.getTs();
+        const sourceFile = ts?.createSourceFile(filePath, fileText, ts.ScriptTarget.Latest, true);
+        if (!sourceFile) {
+            logger.warn('未找到 typescript 依赖,已降级为字符串解析生成 RPC 描述文件,建议在项目 devDependencies 中安装 typescript');
+        }
         functionList.forEach((funcName) => {
             if (funcName === 'constructor') {
                 return;
             }
-            const res = this.getFunctionDesc(funcName, fileText);
+            const res = sourceFile
+                ? this.getFunctionDesc(ts, this.findClassMethod(ts, sourceFile, funcName), sourceFile)
+                : this.getFunctionDescByText(funcName, fileText);
             if (res) {
                 funcDescList.push(...res);
             }
@@ -269,8 +285,57 @@ declare class rpc {
         return funcDescList;
     }
 
-    /** 获取remote class指定函数的描述信息 */
-    private static getFunctionDesc(funcName: string, fileText: string) {
+    /** 在源文件中查找指定名称的方法节点 */
+    private static findClassMethod(ts: any, sourceFile: any, funcName: string) {
+        let method: any;
+        const visit = (node: any) => {
+            if (method) {
+                return;
+            }
+            if (ts.isClassDeclaration(node)) {
+                node.members.forEach((member: any) => {
+                    if (!method && ts.isMethodDeclaration(member)
+                        && member.name && member.name.text === funcName) {
+                        method = member;
+                    }
+                });
+            }
+            ts.forEachChild(node, visit);
+        };
+        ts.forEachChild(sourceFile, visit);
+        return method;
+    }
+
+    /** 基于 AST 获取remote class指定函数的描述信息 */
+    private static getFunctionDesc(ts: any, method: any, sourceFile: any) {
+        if (!method || !method.name) {
+            return;
+        }
+        const funcName = method.name.text;
+        const upperName = CommonUtils.firstCharToUpperCase(funcName);
+
+        // 参数文本,保留原始修饰符、默认值与类型
+        const params = method.parameters
+            .map((param: any) => param.getText(sourceFile))
+            .join(', ');
+        const argsPart = params ? `routeOption: RpcRouterOptions, ${params}` : 'routeOption: RpcRouterOptions';
+
+        // 返回类型文本
+        const resultType = method.type ? method.type.getText(sourceFile).trim() : '';
+        const isPromise = !!method.type && (
+            (ts.isTypeReferenceNode(method.type)
+                && ts.isIdentifier(method.type.typeName)
+                && method.type.typeName.text === 'Promise')
+            || resultType.indexOf('Promise<') === 0
+        );
+
+        const call = `call${upperName}(${argsPart})${resultType ? `: ${isPromise ? resultType : `Promise<${resultType}>`};` : ''}`;
+        const send = `send${upperName}(${argsPart}): void;`;
+        return [call, send];
+    }
+
+    /** 降级方案:基于字符串解析remote class指定函数的描述信息 */
+    private static getFunctionDescByText(funcName: string, fileText: string) {
         const index = fileText.indexOf(` ${funcName}`);
         if (index === -1) {
             return;
@@ -283,7 +348,7 @@ declare class rpc {
         const isPromiseResult = resultType.indexOf('Promise<') !== -1;
         let modelFunc = CommonUtils.firstCharToUpperCase(fileText.substring(0, resultTypeIndex + 1));
         const argsStr = `${modelFunc.substring(modelFunc.indexOf('(') + 1, modelFunc.indexOf(')'))}`;
-        modelFunc = `${modelFunc.substring(0, modelFunc.indexOf('('))}(routeOption: RpcRouterOptions, ${argsStr})`
+        modelFunc = `${modelFunc.substring(0, modelFunc.indexOf('('))}(routeOption: RpcRouterOptions, ${argsStr})`;
         const call = `call${modelFunc}${resultTypeIndex !== -1 ? `: ${isPromiseResult ? resultType : `Promise<${resultType}>`};` : ''}`;
         const send = `send${modelFunc}: void;`;
         return [call, send];
