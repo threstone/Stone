@@ -117,6 +117,10 @@ class RpcManager {
         if (this._serverRemoteMap) {
             return this._serverRemoteMap;
         }
+        const ts = this.getTs();
+        if (!ts) {
+            throw new Error('RPC remote 扫描需要 typescript 依赖');
+        }
         // 遍历所有服务的remote目录
         const serverRemoteMap = new Map();
         const serversPath = this.getServersCodePath();
@@ -134,8 +138,55 @@ class RpcManager {
                     return;
                 }
                 const className = fileName.substring(0, fileName.indexOf('.js'));
-                const remoteClass = require(`${remotePath}/${fileName}`);
-                remoteClass[className] && remoteMap.set(className, remoteClass[className]);
+                const filePath = path.join(remotePath, fileName);
+                const sourceFile = ts.createSourceFile(filePath, fs.readFileSync(filePath, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+                if (sourceFile.parseDiagnostics.length) {
+                    throw new Error(`解析 RPC remote 失败: ${filePath}: ${ts.flattenDiagnosticMessageText(sourceFile.parseDiagnostics[0].messageText, '\n')}`);
+                }
+                let remoteClass;
+                let isExported = false;
+                sourceFile.statements.forEach((statement) => {
+                    var _a;
+                    if (ts.isClassDeclaration(statement) && ((_a = statement.name) === null || _a === void 0 ? void 0 : _a.text) === className) {
+                        remoteClass = statement;
+                    }
+                    else if (ts.isVariableStatement(statement)) {
+                        statement.declarationList.declarations.forEach((declaration) => {
+                            if (declaration.name.text === className && ts.isClassExpression(declaration.initializer)) {
+                                remoteClass = declaration.initializer;
+                            }
+                        });
+                    }
+                    else if (ts.isExpressionStatement(statement) && ts.isBinaryExpression(statement.expression)) {
+                        const expression = statement.expression;
+                        if (expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                            && ts.isPropertyAccessExpression(expression.left)
+                            && ts.isIdentifier(expression.left.expression)
+                            && expression.left.expression.text === 'exports'
+                            && expression.left.name.text === className
+                            && ts.isIdentifier(expression.right)
+                            && expression.right.text === className) {
+                            isExported = true;
+                        }
+                    }
+                });
+                if (!remoteClass || !isExported) {
+                    return;
+                }
+                const methods = new Set();
+                remoteClass.members.forEach((member) => {
+                    var _a;
+                    if (!(ts.isMethodDeclaration(member) || ts.isGetAccessorDeclaration(member) || ts.isSetAccessorDeclaration(member))
+                        || ((_a = member.modifiers) === null || _a === void 0 ? void 0 : _a.some((modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword))) {
+                        return;
+                    }
+                    const name = ts.isComputedPropertyName(member.name) ? member.name.expression : member.name;
+                    if ((ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name) || ts.isNoSubstitutionTemplateLiteral(name))
+                        && name.text !== 'constructor') {
+                        methods.add(name.text);
+                    }
+                });
+                remoteMap.set(className, Array.from(methods));
             });
             serverRemoteMap.set(dirName, remoteMap);
         }
@@ -154,7 +205,7 @@ class RpcManager {
     }
     /** 生成调用序列 */
     static initRpcModule() {
-        if (this.isServer() === false) {
+        if (this.isServer() === false || serverConfig.serverType === 'RPC') {
             return;
         }
         const serverRemoteMap = this.getRemoteInfo();
@@ -164,11 +215,10 @@ class RpcManager {
         rpcAny.send = this.send;
         serverRemoteMap.forEach((remoteClassMap, serverName) => {
             rpcAny[serverName] = {};
-            remoteClassMap.forEach((remoteClass, className) => {
+            remoteClassMap.forEach((functionList, className) => {
                 const name = CommonUtils_1.CommonUtils.firstCharToLowerCase(className);
                 rpcAny[serverName][name] = {};
                 const classAny = rpcAny[serverName][name];
-                const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
                 functionList.forEach((funcName) => {
                     if (funcName === 'constructor') {
                         return;
@@ -201,8 +251,7 @@ declare class rpc {
                 const serverType = CommonUtils_1.CommonUtils.firstCharToUpperCase(serverName);
                 rpcDeclare += `    static ${serverName}: typeof ${serverType};\n`;
                 serverDeclare += `\ndeclare class ${serverType} {\n`;
-                remoteClassMap.forEach((remoteClass, className) => {
-                    const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
+                remoteClassMap.forEach((functionList, className) => {
                     const funcDescList = this.getClassFunctionDesc(serverName, className, functionList);
                     if (!funcDescList) {
                         return;

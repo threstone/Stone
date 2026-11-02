@@ -10,7 +10,7 @@ export class RpcManager {
     private static _index: number = 0;
     private static _clients: RpcClient[];
     private static _serverWorker: BaseWorker[];
-    private static _serverRemoteMap: Map<string, Map<string, any>>;
+    private static _serverRemoteMap: Map<string, Map<string, string[]>>;
 
     static init() {
         this.doMasterTask();
@@ -132,8 +132,12 @@ export class RpcManager {
         if (this._serverRemoteMap) {
             return this._serverRemoteMap;
         }
+        const ts = this.getTs();
+        if (!ts) {
+            throw new Error('RPC remote 扫描需要 typescript 依赖');
+        }
         // 遍历所有服务的remote目录
-        const serverRemoteMap = new Map<string, Map<string, any>>();
+        const serverRemoteMap = new Map<string, Map<string, string[]>>();
 
         const serversPath = this.getServersCodePath();
         const dirs = fs.readdirSync(serversPath);
@@ -145,14 +149,58 @@ export class RpcManager {
             }
 
             const remoteFiles = fs.readdirSync(remotePath);
-            const remoteMap = new Map();
+            const remoteMap = new Map<string, string[]>();
             remoteFiles.forEach((fileName) => {
                 if (!fileName.endsWith('.js')) {
                     return;
                 }
                 const className = fileName.substring(0, fileName.indexOf('.js'));
-                const remoteClass = require(`${remotePath}/${fileName}`);
-                remoteClass[className] && remoteMap.set(className, remoteClass[className]);
+                const filePath = path.join(remotePath, fileName);
+                const sourceFile = ts.createSourceFile(filePath, fs.readFileSync(filePath, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+                if (sourceFile.parseDiagnostics.length) {
+                    throw new Error(`解析 RPC remote 失败: ${filePath}: ${ts.flattenDiagnosticMessageText(sourceFile.parseDiagnostics[0].messageText, '\n')}`);
+                }
+
+                let remoteClass: any;
+                let isExported = false;
+                sourceFile.statements.forEach((statement: any) => {
+                    if (ts.isClassDeclaration(statement) && statement.name?.text === className) {
+                        remoteClass = statement;
+                    } else if (ts.isVariableStatement(statement)) {
+                        statement.declarationList.declarations.forEach((declaration: any) => {
+                            if (declaration.name.text === className && ts.isClassExpression(declaration.initializer)) {
+                                remoteClass = declaration.initializer;
+                            }
+                        });
+                    } else if (ts.isExpressionStatement(statement) && ts.isBinaryExpression(statement.expression)) {
+                        const expression = statement.expression;
+                        if (expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                            && ts.isPropertyAccessExpression(expression.left)
+                            && ts.isIdentifier(expression.left.expression)
+                            && expression.left.expression.text === 'exports'
+                            && expression.left.name.text === className
+                            && ts.isIdentifier(expression.right)
+                            && expression.right.text === className) {
+                            isExported = true;
+                        }
+                    }
+                });
+                if (!remoteClass || !isExported) {
+                    return;
+                }
+                const methods = new Set<string>();
+                remoteClass.members.forEach((member: any) => {
+                    if (!(ts.isMethodDeclaration(member) || ts.isGetAccessorDeclaration(member) || ts.isSetAccessorDeclaration(member))
+                        || member.modifiers?.some((modifier: any) => modifier.kind === ts.SyntaxKind.StaticKeyword)) {
+                        return;
+                    }
+                    const name = ts.isComputedPropertyName(member.name) ? member.name.expression : member.name;
+                    if ((ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name) || ts.isNoSubstitutionTemplateLiteral(name))
+                        && name.text !== 'constructor') {
+                        methods.add(name.text);
+                    }
+                });
+                remoteMap.set(className, Array.from(methods));
             });
             serverRemoteMap.set(dirName, remoteMap);
         }
@@ -172,7 +220,7 @@ export class RpcManager {
 
     /** 生成调用序列 */
     private static initRpcModule() {
-        if (this.isServer() === false) {
+        if (this.isServer() === false || serverConfig.serverType === 'RPC') {
             return;
         }
         const serverRemoteMap = this.getRemoteInfo();
@@ -182,11 +230,10 @@ export class RpcManager {
         rpcAny.send = this.send;
         serverRemoteMap.forEach((remoteClassMap, serverName) => {
             rpcAny[serverName] = {};
-            remoteClassMap.forEach((remoteClass, className) => {
+            remoteClassMap.forEach((functionList, className) => {
                 const name = CommonUtils.firstCharToLowerCase(className);
                 rpcAny[serverName][name] = {};
                 const classAny = rpcAny[serverName][name];
-                const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
                 functionList.forEach((funcName) => {
                     if (funcName === 'constructor') {
                         return;
@@ -222,8 +269,7 @@ declare class rpc {
                 rpcDeclare += `    static ${serverName}: typeof ${serverType};\n`
 
                 serverDeclare += `\ndeclare class ${serverType} {\n`
-                remoteClassMap.forEach((remoteClass, className) => {
-                    const functionList = Object.getOwnPropertyNames(remoteClass.prototype);
+                remoteClassMap.forEach((functionList, className) => {
                     const funcDescList = this.getClassFunctionDesc(serverName, className, functionList);
                     if (!funcDescList) { return; }
 
