@@ -100,6 +100,10 @@ class RpcUtilsByJson {
         }
         else { /* random */
             const nodeList = serverMapList.get(reqMsg.serverName);
+            if (!nodeList) {
+                logger.error(`No nodes available for server: ${reqMsg.serverName}`);
+                return;
+            }
             (_c = nodeList[(this.getRandIndex()) % nodeList.length]) === null || _c === void 0 ? void 0 : _c.send(jsonStr);
         }
     }

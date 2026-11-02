@@ -102,6 +102,10 @@ export class RpcUtilsByJson {
             });
         } else {/* random */
             const nodeList = serverMapList.get(reqMsg.serverName);
+            if (!nodeList) {
+                logger.error(`No nodes available for server: ${reqMsg.serverName}`);
+                return;
+            }
             nodeList[(this.getRandIndex()) % nodeList.length]?.send(jsonStr)
         }
     }
